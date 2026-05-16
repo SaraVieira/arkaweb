@@ -1,5 +1,4 @@
 import { useThree } from "@react-three/fiber";
-import { PerspectiveCamera } from "three";
 
 export interface GameBounds {
 	left: number;
@@ -9,25 +8,16 @@ export interface GameBounds {
 }
 
 /**
- * Visible area at the play plane (z=0), in world units, based on the active
- * perspective camera. Camera is assumed to look along -z from its position.
+ * Visible area at the play plane (z=0), in world units. Assumes the camera
+ * is aimed at the world origin (R3F's default), so the visible area at z=0
+ * is centered around (0, 0).
  */
 export function useGameBounds(): GameBounds {
-	const camera = useThree((s) => s.camera);
-	const size = useThree((s) => s.size);
-
-	if (!(camera instanceof PerspectiveCamera)) {
-		return { left: -20, right: 20, top: 15, bottom: -10 };
-	}
-
-	const z = camera.position.z;
-	const halfH = z * Math.tan(((camera.fov ?? 50) * Math.PI) / 360);
-	const aspect = size.width / size.height;
-	const halfW = halfH * aspect;
+	const viewport = useThree((s) => s.viewport);
 	return {
-		left: -halfW,
-		right: halfW,
-		top: camera.position.y + halfH,
-		bottom: camera.position.y - halfH,
+		left: -viewport.width / 2,
+		right: viewport.width / 2,
+		top: viewport.height / 2,
+		bottom: -viewport.height / 2,
 	};
 }
