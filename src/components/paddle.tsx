@@ -8,7 +8,7 @@ export function Paddle() {
 		<RigidBody
 			ref={ref}
 			colliders="cuboid"
-			type="fixed"
+			type="kinematicPosition"
 			onCollisionEnter={onCollisionEnter}
 		>
 			<mesh castShadow>

@@ -8,11 +8,14 @@ export enum EnemyType {
 }
 
 export enum GAME_STATE {
+	READY = "ready",
 	PLAYING = "playing",
 	PAUSED = "paused",
 	GAME_OVER = "game_over",
 	WON = "won",
 }
+
+export const paddlePositionRef = { current: 0 };
 
 export const POINTS_PER_TYPE: Record<EnemyType, number> = {
 	[EnemyType.Normal]: 10,
@@ -25,7 +28,7 @@ const INITIAL_LIVES = 3;
 export const livesAtom = atom(INITIAL_LIVES);
 export const scoreAtom = atom(0);
 export const roundAtom = atom(0);
-export const gameStateAtom = atom<GAME_STATE>(GAME_STATE.PLAYING);
+export const gameStateAtom = atom<GAME_STATE>(GAME_STATE.READY);
 
 export const enemiesAtom = atom<
 	Record<string, { position: [number, number, number]; type: EnemyType }>
@@ -163,7 +166,7 @@ export const loadLevelAtom = atom(null, (_get, set) => {
 export const resetGameAtom = atom(null, (get, set) => {
 	set(scoreAtom, 0);
 	set(livesAtom, INITIAL_LIVES);
-	set(gameStateAtom, GAME_STATE.PLAYING);
+	set(gameStateAtom, GAME_STATE.READY);
 	set(roundAtom, get(roundAtom) + 1);
 	set(loadLevelAtom);
 });

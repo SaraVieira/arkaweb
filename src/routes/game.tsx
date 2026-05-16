@@ -58,7 +58,9 @@ export const Game = () => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key === " ") {
 				e.preventDefault();
-				if (gameState === GAME_STATE.PLAYING) {
+				if (gameState === GAME_STATE.READY) {
+					setGameState(GAME_STATE.PLAYING);
+				} else if (gameState === GAME_STATE.PLAYING) {
 					setGameState(GAME_STATE.PAUSED);
 				} else if (gameState === GAME_STATE.PAUSED) {
 					setGameState(GAME_STATE.PLAYING);
@@ -77,11 +79,15 @@ export const Game = () => {
 
 				<Physics
 					gravity={[0, -30, 0]}
-					paused={gameState !== GAME_STATE.PLAYING}
+					paused={
+						gameState === GAME_STATE.PAUSED ||
+						gameState === GAME_STATE.GAME_OVER ||
+						gameState === GAME_STATE.WON
+					}
 				>
 					<Walls />
 					<Ball key={round} />
-					<Paddle />
+					<Paddle key={round} />
 					{Object.keys(enemies).map((id) => {
 						const enemy = enemies[id];
 						return (
@@ -125,6 +131,12 @@ export const Game = () => {
 				<div className="text-xl">Score: {score.toLocaleString()}</div>
 				<div className="text-xl">Lives: {lives}</div>
 			</div>
+
+			{gameState === GAME_STATE.READY && (
+				<div className="pointer-events-none absolute inset-x-0 bottom-8 text-center font-mono text-xl text-white drop-shadow-lg">
+					Press SPACE to launch
+				</div>
+			)}
 
 			{gameState === GAME_STATE.PAUSED && (
 				<Overlay title="PAUSED" subtitle="Press space to resume" />

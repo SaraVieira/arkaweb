@@ -2,23 +2,27 @@ import { useFrame } from "@react-three/fiber";
 import type { RapierRigidBody } from "@react-three/rapier";
 import { useEffect, useRef } from "react";
 import { PADDLE_HIT_SPEED, PADDLE_LIMITS } from "../consts";
+import { paddlePositionRef } from "../game-store";
 
 export function usePaddle() {
 	const keys = useRef<Record<string, boolean>>({});
 	const ref = useRef<RapierRigidBody | null>(null);
 	const x = useRef(0);
 
-	useFrame(({ viewport }) => {
-		if (keys.current.ArrowLeft) x.current -= 0.2;
-		if (keys.current.ArrowRight) x.current += 0.2;
+	useFrame(({ viewport }, delta) => {
+		const step = 24 * delta;
+		if (keys.current.ArrowLeft) x.current -= step;
+		if (keys.current.ArrowRight) x.current += step;
 		x.current = Math.max(
 			PADDLE_LIMITS.left,
 			Math.min(PADDLE_LIMITS.right, x.current),
 		);
-		ref.current?.setTranslation(
-			{ x: x.current, y: -viewport.height / 3, z: 0 },
-			true,
-		);
+		paddlePositionRef.current = x.current;
+		ref.current?.setNextKinematicTranslation({
+			x: x.current,
+			y: -viewport.height / 3,
+			z: 0,
+		});
 	});
 
 	const onCollisionEnter = ({ other }: any) => {
