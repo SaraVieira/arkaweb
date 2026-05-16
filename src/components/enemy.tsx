@@ -29,7 +29,7 @@ export const Enemy = ({
 			colliders="cuboid"
 			type="fixed"
 			position={position}
-			restitution={2.1}
+			restitution={1}
 			onCollisionEnter={() => {
 				const next = hits + 1;
 				setHits(next);

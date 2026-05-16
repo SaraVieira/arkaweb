@@ -24,10 +24,14 @@ import { Enemy } from "#/components/enemy";
 import { Overlay } from "#/components/overlay";
 import { Paddle } from "#/components/paddle";
 import { Walls } from "#/components/walls";
+import { getLevelsFn } from "#/levels/server";
 import {
+	advanceLevelAtom,
+	currentLevelAtom,
 	enemiesAtom,
 	GAME_STATE,
 	gameStateAtom,
+	levelsAtom,
 	livesAtom,
 	loadLevelAtom,
 	resetGameAtom,
@@ -38,12 +42,16 @@ import {
 export const Game = () => {
 	const loadLevel = useSetAtom(loadLevelAtom);
 	const resetGame = useSetAtom(resetGameAtom);
+	const advanceLevel = useSetAtom(advanceLevelAtom);
 	const enemies = useAtomValue(enemiesAtom);
 	const [gameState, setGameState] = useAtom(gameStateAtom);
 	const [hit, setHit] = useState(false);
 	const lives = useAtomValue(livesAtom);
 	const score = useAtomValue(scoreAtom);
 	const round = useAtomValue(roundAtom);
+	const currentLevel = useAtomValue(currentLevelAtom);
+	const [levels, setLevels] = useAtom(levelsAtom);
+	const level = levels[currentLevel];
 
 	const onHit = () => {
 		setHit(true);
@@ -51,8 +59,16 @@ export const Game = () => {
 	};
 
 	useEffect(() => {
-		loadLevel();
-	}, [loadLevel]);
+		let cancelled = false;
+		getLevelsFn().then((data) => {
+			if (cancelled) return;
+			setLevels(data);
+			loadLevel();
+		});
+		return () => {
+			cancelled = true;
+		};
+	}, [setLevels, loadLevel]);
 
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
@@ -71,6 +87,14 @@ export const Game = () => {
 		return () => window.removeEventListener("keydown", handleKeyDown);
 	}, [gameState, setGameState]);
 
+	if (levels.length === 0) {
+		return (
+			<div className="flex h-screen w-screen items-center justify-center bg-black text-white">
+				Loading levels…
+			</div>
+		);
+	}
+
 	return (
 		<div className="relative h-screen w-screen overflow-hidden">
 			<Canvas shadows camera={{ position: [0, 5, 24], fov: 50 }}>
@@ -78,22 +102,23 @@ export const Game = () => {
 				<Background />
 
 				<Physics
-					gravity={[0, -30, 0]}
+					gravity={[0, 0, 0]}
 					paused={
 						gameState === GAME_STATE.PAUSED ||
+						gameState === GAME_STATE.LEVEL_COMPLETE ||
 						gameState === GAME_STATE.GAME_OVER ||
 						gameState === GAME_STATE.WON
 					}
 				>
 					<Walls />
-					<Ball key={round} />
-					<Paddle key={round} />
+					<Ball key={`ball-${round}`} />
+					<Paddle key={`paddle-${round}`} />
 					{Object.keys(enemies).map((id) => {
 						const enemy = enemies[id];
 						return (
 							<Enemy
 								onHit={onHit}
-								key={id}
+								key={`enemy-${id}`}
 								id={id}
 								type={enemy.type}
 								position={enemy.position}
@@ -127,19 +152,32 @@ export const Game = () => {
 				</EffectComposer>
 			</Canvas>
 
-			<div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-4 font-mono text-white drop-shadow-lg">
+			<div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-4 text-white drop-shadow-lg">
 				<div className="text-xl">Score: {score.toLocaleString()}</div>
+				<div className="text-xl">
+					Level {currentLevel + 1}
+					{level ? ` — ${level.name}` : ""}
+				</div>
 				<div className="text-xl">Lives: {lives}</div>
 			</div>
 
 			{gameState === GAME_STATE.READY && (
-				<div className="pointer-events-none absolute inset-x-0 bottom-8 text-center font-mono text-xl text-white drop-shadow-lg">
+				<div className="pointer-events-none absolute inset-x-0 bottom-8 text-center text-xl text-white drop-shadow-lg">
 					Press SPACE to launch
 				</div>
 			)}
 
 			{gameState === GAME_STATE.PAUSED && (
 				<Overlay title="PAUSED" subtitle="Press space to resume" />
+			)}
+
+			{gameState === GAME_STATE.LEVEL_COMPLETE && (
+				<Overlay
+					title="LEVEL CLEAR"
+					subtitle={`Score: ${score.toLocaleString()}`}
+					actionLabel="Next level"
+					onAction={advanceLevel}
+				/>
 			)}
 
 			{gameState === GAME_STATE.GAME_OVER && (

@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as GameRouteImport } from './routes/game'
+import { Route as EditorRouteImport } from './routes/editor'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const GameRoute = GameRouteImport.update({
   id: '/game',
   path: '/game',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditorRoute = EditorRouteImport.update({
+  id: '/editor',
+  path: '/editor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -31,30 +37,34 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/editor': typeof EditorRoute
   '/game': typeof GameRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/editor': typeof EditorRoute
   '/game': typeof GameRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/editor': typeof EditorRoute
   '/game': typeof GameRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/game' | '/api/auth/$'
+  fullPaths: '/' | '/editor' | '/game' | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/game' | '/api/auth/$'
-  id: '__root__' | '/' | '/game' | '/api/auth/$'
+  to: '/' | '/editor' | '/game' | '/api/auth/$'
+  id: '__root__' | '/' | '/editor' | '/game' | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  EditorRoute: typeof EditorRoute
   GameRoute: typeof GameRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/game'
       fullPath: '/game'
       preLoaderRoute: typeof GameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editor': {
+      id: '/editor'
+      path: '/editor'
+      fullPath: '/editor'
+      preLoaderRoute: typeof EditorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  EditorRoute: EditorRoute,
   GameRoute: GameRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

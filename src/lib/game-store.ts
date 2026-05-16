@@ -1,16 +1,16 @@
 import { atom } from "jotai";
+import { EnemyType, type Level } from "#/levels/schema";
 import { CELL_HEIGHT, CELL_WIDTH, START_X, START_Y } from "./consts";
 
-export enum EnemyType {
-	Normal = "normal",
-	Silver = "silver",
-	Gold = "gold",
-}
+export { EnemyType };
+
+export const levelsAtom = atom<Level[]>([]);
 
 export enum GAME_STATE {
 	READY = "ready",
 	PLAYING = "playing",
 	PAUSED = "paused",
+	LEVEL_COMPLETE = "level_complete",
 	GAME_OVER = "game_over",
 	WON = "won",
 }
@@ -28,6 +28,7 @@ const INITIAL_LIVES = 3;
 export const livesAtom = atom(INITIAL_LIVES);
 export const scoreAtom = atom(0);
 export const roundAtom = atom(0);
+export const currentLevelAtom = atom(0);
 export const gameStateAtom = atom<GAME_STATE>(GAME_STATE.READY);
 
 export const enemiesAtom = atom<
@@ -38,74 +39,6 @@ const gridToWorld = (row: number, col: number): [number, number, number] => [
 	START_X + col * CELL_WIDTH,
 	START_Y - row * CELL_HEIGHT,
 	0,
-];
-
-type LevelRow = (EnemyType | null)[];
-type Level = LevelRow[];
-
-const levels: Level[] = [
-	[
-		[
-			EnemyType.Normal,
-			EnemyType.Normal,
-			EnemyType.Silver,
-			EnemyType.Normal,
-			null,
-			EnemyType.Normal,
-			EnemyType.Normal,
-			EnemyType.Normal,
-		],
-		[
-			EnemyType.Normal,
-			EnemyType.Normal,
-			EnemyType.Silver,
-			EnemyType.Normal,
-			null,
-			EnemyType.Normal,
-			EnemyType.Normal,
-			EnemyType.Normal,
-		],
-		[
-			EnemyType.Normal,
-			EnemyType.Normal,
-			EnemyType.Silver,
-			EnemyType.Normal,
-			null,
-			EnemyType.Normal,
-			EnemyType.Normal,
-			EnemyType.Normal,
-		],
-		[
-			EnemyType.Silver,
-			EnemyType.Normal,
-			EnemyType.Silver,
-			EnemyType.Normal,
-			EnemyType.Silver,
-			EnemyType.Silver,
-			EnemyType.Normal,
-			EnemyType.Normal,
-		],
-		[
-			EnemyType.Normal,
-			EnemyType.Silver,
-			EnemyType.Normal,
-			EnemyType.Silver,
-			EnemyType.Normal,
-			EnemyType.Silver,
-			EnemyType.Normal,
-			EnemyType.Normal,
-		],
-		[
-			EnemyType.Silver,
-			EnemyType.Normal,
-			EnemyType.Silver,
-			EnemyType.Normal,
-			EnemyType.Silver,
-			EnemyType.Silver,
-			EnemyType.Normal,
-			EnemyType.Normal,
-		],
-	],
 ];
 
 export const addEnemyAtom = atom(
@@ -141,16 +74,23 @@ export const destroyEnemyAtom = atom(
 		set(scoreAtom, get(scoreAtom) + POINTS_PER_TYPE[type]);
 		const remaining = get(enemiesAtom);
 		if (Object.keys(remaining).length === 0) {
-			set(gameStateAtom, GAME_STATE.WON);
+			const next = get(currentLevelAtom) + 1;
+			set(
+				gameStateAtom,
+				next < get(levelsAtom).length
+					? GAME_STATE.LEVEL_COMPLETE
+					: GAME_STATE.WON,
+			);
 		}
 	},
 );
 
-export const loadLevelAtom = atom(null, (_get, set) => {
-	const level = levels[0];
+export const loadLevelAtom = atom(null, (get, set) => {
+	const level = get(levelsAtom)[get(currentLevelAtom)];
 	set(enemiesAtom, {});
+	if (!level) return;
 	let id = 0;
-	level.forEach((row, rowIndex) => {
+	level.grid.forEach((row, rowIndex) => {
 		row.forEach((type, colIndex) => {
 			if (type) {
 				set(addEnemyAtom, {
@@ -163,9 +103,22 @@ export const loadLevelAtom = atom(null, (_get, set) => {
 	});
 });
 
+export const advanceLevelAtom = atom(null, (get, set) => {
+	const next = get(currentLevelAtom) + 1;
+	if (next >= get(levelsAtom).length) {
+		set(gameStateAtom, GAME_STATE.WON);
+		return;
+	}
+	set(currentLevelAtom, next);
+	set(gameStateAtom, GAME_STATE.READY);
+	set(roundAtom, get(roundAtom) + 1);
+	set(loadLevelAtom);
+});
+
 export const resetGameAtom = atom(null, (get, set) => {
 	set(scoreAtom, 0);
 	set(livesAtom, INITIAL_LIVES);
+	set(currentLevelAtom, 0);
 	set(gameStateAtom, GAME_STATE.READY);
 	set(roundAtom, get(roundAtom) + 1);
 	set(loadLevelAtom);
