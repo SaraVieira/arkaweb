@@ -11,9 +11,14 @@ export function Paddle() {
       type="fixed"
       onCollisionEnter={onCollisionEnter}
     >
-      <mesh>
+      <mesh castShadow>
         <boxGeometry args={[4, 1, 1]} />
-        <meshStandardMaterial color="lightblue" />
+        <meshPhysicalMaterial
+          color="lightblue"
+          metalness={0.8}
+          roughness={0.2}
+          clearcoat={0.5}
+        />
       </mesh>
     </RigidBody>
   );

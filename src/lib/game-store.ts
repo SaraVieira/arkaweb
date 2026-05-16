@@ -1,10 +1,23 @@
 import { atom } from "jotai";
 import { CELL_HEIGHT, CELL_WIDTH, START_X, START_Y } from "./consts";
 
-export const pausedAtom = atom(false);
+export enum EnemyType {
+  Normal = "normal",
+  Silver = "silver",
+  Gold = "gold",
+}
+
+export enum GAME_STATE {
+  PLAYING = "playing",
+  PAUSED = "paused",
+  GAME_OVER = "game_over",
+}
+
+export const livesAtom = atom(3);
+export const gameStateAtom = atom<GAME_STATE>(GAME_STATE.PLAYING);
 
 export const enemiesAtom = atom<
-  Record<string, { position: [number, number, number]; color: string }>
+  Record<string, { position: [number, number, number]; type: EnemyType }>
 >({});
 
 const gridToWorld = (row: number, col: number): [number, number, number] => [
@@ -13,71 +26,70 @@ const gridToWorld = (row: number, col: number): [number, number, number] => [
   0,
 ];
 
-type EnemyColor = string | null;
-type LevelRow = EnemyColor[];
+type LevelRow = (EnemyType | null)[];
 type Level = LevelRow[];
 
 const levels: Level[] = [
   [
     [
-      "hotpink",
-      "hotpink",
-      "orange",
-      "hotpink",
+      EnemyType.Normal,
+      EnemyType.Normal,
+      EnemyType.Silver,
+      EnemyType.Normal,
       null,
-      "hotpink",
-      "hotpink",
-      "hotpink",
+      EnemyType.Normal,
+      EnemyType.Normal,
+      EnemyType.Normal,
     ],
     [
-      "hotpink",
-      "hotpink",
-      "orange",
-      "hotpink",
+      EnemyType.Normal,
+      EnemyType.Normal,
+      EnemyType.Silver,
+      EnemyType.Normal,
       null,
-      "hotpink",
-      "hotpink",
-      "hotpink",
+      EnemyType.Normal,
+      EnemyType.Normal,
+      EnemyType.Normal,
     ],
     [
-      "hotpink",
-      "hotpink",
-      "orange",
-      "hotpink",
+      EnemyType.Normal,
+      EnemyType.Normal,
+      EnemyType.Silver,
+      EnemyType.Normal,
       null,
-      "hotpink",
-      "hotpink",
-      "hotpink",
+      EnemyType.Normal,
+      EnemyType.Normal,
+      EnemyType.Normal,
     ],
     [
-      "orange",
-      "hotpink",
-      "orange",
-      "hotpink",
-      "orange",
-      "orange",
-      "hotpink",
-      "hotpink",
+      EnemyType.Silver,
+      EnemyType.Normal,
+      EnemyType.Silver,
+      EnemyType.Normal,
+      EnemyType.Silver,
+      EnemyType.Silver,
+      EnemyType.Normal,
+      EnemyType.Normal,
     ],
     [
-      "hotpink",
-      "orange",
-      "hotpink",
-      "orange",
-      "hotpink",
-      "orange",
-      "hotpink",
-      "hotpink",
+      EnemyType.Normal,
+      EnemyType.Silver,
+      EnemyType.Normal,
+      EnemyType.Silver,
+      EnemyType.Normal,
+      EnemyType.Silver,
+      EnemyType.Normal,
+      EnemyType.Normal,
     ],
     [
-      "orange",
-      "hotpink",
-      "orange",
-      "hotpink",
-      "orange",
-      "orange",
-      "hotpink",
-      "hotpink",
+      EnemyType.Silver,
+      EnemyType.Normal,
+      EnemyType.Silver,
+      EnemyType.Normal,
+      EnemyType.Silver,
+      EnemyType.Silver,
+      EnemyType.Normal,
+      EnemyType.Normal,
     ],
   ],
 ];
@@ -90,12 +102,12 @@ export const addEnemyAtom = atom(
     {
       id,
       position,
-      color,
-    }: { id: string; position: [number, number, number]; color: string },
+      type,
+    }: { id: string; position: [number, number, number]; type: EnemyType },
   ) => {
     set(enemiesAtom, (prev) => ({
       ...prev,
-      [id]: { position, color },
+      [id]: { position, type },
     }));
   },
 );
@@ -113,12 +125,12 @@ export const loadLevelAtom = atom(null, (_get, set) => {
   set(enemiesAtom, {});
   let id = 0;
   level.forEach((row, rowIndex) => {
-    row.forEach((color, colIndex) => {
-      if (color) {
+    row.forEach((type, colIndex) => {
+      if (type) {
         set(addEnemyAtom, {
           id: String(id++),
           position: gridToWorld(rowIndex, colIndex),
-          color,
+          type,
         });
       }
     });
