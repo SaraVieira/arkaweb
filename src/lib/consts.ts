@@ -1,6 +1,6 @@
 export const PADDLE_LIMITS = {
-  left: -12,
-  right: 12,
+	left: -12,
+	right: 12,
 };
 export const PADDLE_HIT_SPEED = 26;
 export const COLS = 8;
