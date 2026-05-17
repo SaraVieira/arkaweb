@@ -16,7 +16,7 @@ import {
   KernelSize,
   Resolution,
 } from "postprocessing";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Vector2 } from "three";
 import { Background } from "#/components/Background";
 import { Ball } from "#/components/ball";
@@ -70,8 +70,8 @@ export const Game = () => {
     };
   }, [setLevels, loadLevel]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
       if (e.key === " ") {
         e.preventDefault();
         if (gameState === GAME_STATE.READY) {
@@ -82,10 +82,14 @@ export const Game = () => {
           setGameState(GAME_STATE.PLAYING);
         }
       }
-    };
+    },
+    [gameState, setGameState],
+  );
+
+  useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [gameState, setGameState]);
+  }, [handleKeyDown]);
 
   if (levels.length === 0) {
     return (

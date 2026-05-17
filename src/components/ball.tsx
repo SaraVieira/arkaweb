@@ -19,6 +19,10 @@ const FLOOR_THICKNESS = 1;
 export function Ball() {
   const ref = useRef<RapierRigidBody | null>(null);
   const [lives, setLives] = useAtom(livesAtom);
+  const livesRef = useRef(lives);
+  useEffect(() => {
+    livesRef.current = lives;
+  }, [lives]);
   const gameState = useAtomValue(gameStateAtom);
   const setGameState = useSetAtom(gameStateAtom);
   const bounds = useGameBounds();
@@ -47,7 +51,14 @@ export function Ball() {
     // Keep ball speed constant + prevent purely-horizontal motion.
     const v = body.linvel();
     const mag = Math.hypot(v.x, v.y);
-    if (mag < 0.001) return;
+    if (mag < 0.001) {
+      // Restore vertical bias so the ball doesn't stay stuck horizontal
+      body.setLinvel(
+        { x: Math.sin(0.3) * BALL_SPEED, y: Math.cos(0.3) * BALL_SPEED, z: 0 },
+        true,
+      );
+      return;
+    }
     let nx = v.x / mag;
     let ny = v.y / mag;
     const minVy = MIN_VY_RATIO;
@@ -78,13 +89,14 @@ export function Ball() {
 
   const onFloorCollision = () => {
     const body = ref.current;
-    if (lives <= 1) {
+    const currentLives = livesRef.current;
+    if (currentLives <= 1) {
       setLives(0);
       setGameState(GAME_STATE.GAME_OVER);
       body?.setLinvel({ x: 0, y: 0, z: 0 }, true);
       return;
     }
-    setLives(lives - 1);
+    setLives(currentLives - 1);
     setGameState(GAME_STATE.READY);
   };
 

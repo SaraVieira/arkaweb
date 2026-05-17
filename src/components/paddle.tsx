@@ -3,7 +3,7 @@ import { usePaddle } from "#/lib/hooks/usePaddle";
 import { PaddleModel } from "#/models/paddle";
 
 export function Paddle() {
-  const { ref, onCollisionEnter } = usePaddle();
+  const { ref, onCollisionEnter, onCollisionExit } = usePaddle();
 
   return (
     <RigidBody
@@ -11,6 +11,7 @@ export function Paddle() {
       colliders="cuboid"
       type="kinematicPosition"
       onCollisionEnter={onCollisionEnter}
+      onCollisionExit={onCollisionExit}
     >
       <PaddleModel />
     </RigidBody>

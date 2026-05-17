@@ -1,10 +1,10 @@
 import { useThree } from "@react-three/fiber";
 
 export interface GameBounds {
-	left: number;
-	right: number;
-	top: number;
-	bottom: number;
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
 }
 
 /**
@@ -13,11 +13,11 @@ export interface GameBounds {
  * is centered around (0, 0).
  */
 export function useGameBounds(): GameBounds {
-	const viewport = useThree((s) => s.viewport);
-	return {
-		left: -viewport.width / 2,
-		right: viewport.width / 2,
-		top: viewport.height / 2,
-		bottom: -viewport.height / 2,
-	};
+  const viewport = useThree((s) => s.viewport);
+  return {
+    left: -viewport.width / 2,
+    right: viewport.width / 2,
+    top: viewport.height / 2,
+    bottom: -viewport.height / 2,
+  };
 }

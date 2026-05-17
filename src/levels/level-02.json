@@ -1,10 +1,10 @@
 {
-	"id": "level-02",
-	"name": "Goldrush",
-	"grid": [
-		["gold", "silver", "gold", "silver", "gold", "silver", "gold", "silver"],
-		["silver", "gold", "silver", "gold", "silver", "gold", "silver", "gold"],
-		[null, "normal", "normal", "normal", "normal", "normal", "normal", null],
-		[null, null, "normal", "normal", "normal", "normal", null, null]
-	]
+  "id": "level-02",
+  "name": "Goldrush",
+  "grid": [
+    ["gold", "silver", "gold", "silver", "gold", "silver", "gold", "silver"],
+    ["silver", "gold", "silver", "gold", "silver", "gold", "silver", "gold"],
+    [null, "normal", "normal", "normal", "normal", "normal", "normal", null],
+    [null, null, "normal", "normal", "normal", "normal", null, null]
+  ]
 }

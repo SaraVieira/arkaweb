@@ -12,7 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as GameRouteImport } from './routes/game'
 import { Route as EditorRouteImport } from './routes/editor'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiExampleRouteImport } from './routes/api/example'
 
 const GameRoute = GameRouteImport.update({
   id: '/game',
@@ -29,9 +29,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
+const ApiExampleRoute = ApiExampleRouteImport.update({
+  id: '/api/example',
+  path: '/api/example',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -39,34 +39,34 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/editor': typeof EditorRoute
   '/game': typeof GameRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/example': typeof ApiExampleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/editor': typeof EditorRoute
   '/game': typeof GameRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/example': typeof ApiExampleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/editor': typeof EditorRoute
   '/game': typeof GameRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/example': typeof ApiExampleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/editor' | '/game' | '/api/auth/$'
+  fullPaths: '/' | '/editor' | '/game' | '/api/example'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/editor' | '/game' | '/api/auth/$'
-  id: '__root__' | '/' | '/editor' | '/game' | '/api/auth/$'
+  to: '/' | '/editor' | '/game' | '/api/example'
+  id: '__root__' | '/' | '/editor' | '/game' | '/api/example'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EditorRoute: typeof EditorRoute
   GameRoute: typeof GameRoute
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiExampleRoute: typeof ApiExampleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,11 +92,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
+    '/api/example': {
+      id: '/api/example'
+      path: '/api/example'
+      fullPath: '/api/example'
+      preLoaderRoute: typeof ApiExampleRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -106,7 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EditorRoute: EditorRoute,
   GameRoute: GameRoute,
-  ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiExampleRoute: ApiExampleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

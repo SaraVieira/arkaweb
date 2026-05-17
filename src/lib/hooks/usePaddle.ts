@@ -15,6 +15,7 @@ export function usePaddle() {
   const keys = useRef<Record<string, boolean>>({});
   const ref = useRef<RapierRigidBody | null>(null);
   const x = useRef(0);
+  const collisionHandled = useRef(false);
   const bounds = useGameBounds();
   const minX = bounds.left + PADDLE_HALF_WIDTH;
   const maxX = bounds.right - PADDLE_HALF_WIDTH;
@@ -41,6 +42,11 @@ export function usePaddle() {
   }) => {
     const ball = other.rigidBody;
     if (!ball) return;
+
+    // One-shot: only process collision once per contact cycle.
+    // Reset when the ball moves away (detected by velocity change).
+    if (collisionHandled.current) return;
+
     const ballX = ball.translation().x;
     const offset = (ballX - x.current) / PADDLE_HALF_WIDTH;
     const clamped = Math.max(-0.5, Math.min(0.5, offset));
@@ -53,6 +59,18 @@ export function usePaddle() {
       },
       true,
     );
+    collisionHandled.current = true;
+  };
+
+  const onCollisionExit = ({
+    other,
+  }: {
+    other: { rigidBody?: RapierRigidBody };
+  }) => {
+    // Reset the one-shot flag when the ball leaves collision
+    if (other.rigidBody) {
+      collisionHandled.current = false;
+    }
   };
 
   useEffect(() => {
@@ -86,5 +104,5 @@ export function usePaddle() {
     };
   }, []);
 
-  return { keys, ref, onCollisionEnter };
+  return { keys, ref, onCollisionEnter, onCollisionExit };
 }
