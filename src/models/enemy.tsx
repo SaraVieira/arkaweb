@@ -17,14 +17,14 @@ export function EnemyModel(
   const { nodes } = useGLTF("/enemy.glb") as unknown as GLTFResult;
   const color =
     {
-      normal: "lightblue",
+      normal: "#18c9ff",
       silver: "silver",
       gold: "gold",
     }[props.type] || "blue";
 
   const material = new THREE.MeshPhysicalMaterial({
     color,
-    metalness: props.type !== EnemyType.Normal ? 1 : 0,
+    metalness: 1,
     roughness: props.type !== EnemyType.Normal ? 0 : 0.5,
   });
   return (

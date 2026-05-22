@@ -1,13 +1,10 @@
-import { useGameBounds } from "#/lib/hooks/useGameBounds";
-
 const BG_COLOR = "#042A2B";
 const PLUS_COLOR = "#008148";
 const BG_Z = -5;
 
 export function Background() {
   const size = 80;
-  const bounds = useGameBounds();
-  const floorY = bounds.bottom - 1;
+
   return (
     <>
       <mesh position={[0, 10, BG_Z]}>
