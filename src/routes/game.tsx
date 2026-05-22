@@ -102,8 +102,20 @@ export const Game = () => {
   return (
     <div className="relative h-screen w-screen overflow-hidden">
       <Canvas shadows camera={{ position: [0, 5, 24], fov: 50 }}>
-        <Environment files={["/venice_sunset_2k.exr"]} />
         <Background />
+        <Environment files={["/venice_sunset_2k.exr"]} />
+        <ambientLight intensity={0.2} />
+        <directionalLight
+          position={[10, 15, 8]}
+          intensity={2}
+          castShadow
+          shadow-mapSize={2048}
+          shadow-camera-left={-20}
+          shadow-camera-right={20}
+          shadow-camera-top={20}
+          shadow-camera-bottom={-20}
+        />
+        <pointLight position={[-10, 10, -5]} intensity={0.5} color="#4488ff" />
 
         <Physics
           gravity={[0, 0, 0]}

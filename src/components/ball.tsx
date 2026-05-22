@@ -111,9 +111,9 @@ export function Ball() {
         linearDamping={0}
         lockRotations
       >
-        <mesh>
+        <mesh castShadow receiveShadow>
           <sphereGeometry args={[0.75, 32, 32]} />
-          <meshStandardMaterial />
+          <meshStandardMaterial color="#ffffff" />
         </mesh>
       </RigidBody>
       <RigidBody

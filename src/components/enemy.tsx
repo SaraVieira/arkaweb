@@ -3,6 +3,7 @@ import { RigidBody } from "@react-three/rapier";
 import { useSetAtom } from "jotai";
 import { useRef } from "react";
 import { destroyEnemyAtom, EnemyType } from "#/lib/game-store";
+import { EnemyModel } from "#/models/enemy";
 
 const HITS_TO_DESTROY: Record<EnemyType, number> = {
   [EnemyType.Normal]: 1,
@@ -51,20 +52,7 @@ export const Enemy = ({
         }
       }}
     >
-      <mesh castShadow>
-        <boxGeometry args={[2.5, 1, 1]} />
-        <meshPhysicalMaterial
-          metalness={type !== EnemyType.Normal ? 1 : 0}
-          roughness={type !== EnemyType.Normal ? 0 : 0.5}
-          color={
-            type === EnemyType.Normal
-              ? "lightblue"
-              : type === EnemyType.Silver
-                ? "silver"
-                : "gold"
-          }
-        />
-      </mesh>
+      <EnemyModel type={type} />
     </RigidBody>
   );
 };
