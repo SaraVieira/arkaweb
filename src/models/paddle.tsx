@@ -28,6 +28,7 @@ export function PaddleModel(props: JSX.IntrinsicElements["group"]) {
     color: "red",
     metalness: 1,
   });
+
   return (
     <group {...props} dispose={null}>
       <group scale={[2, 0.5, 0.5]}>

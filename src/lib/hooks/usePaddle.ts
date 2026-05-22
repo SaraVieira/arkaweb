@@ -16,10 +16,14 @@ export function usePaddle() {
   const ref = useRef<RapierRigidBody | null>(null);
   const x = useRef(0);
   const collisionHandled = useRef(false);
+  const bounceRef = useRef({ active: false, elapsed: 0 });
   const bounds = useGameBounds();
   const minX = bounds.left + PADDLE_HALF_WIDTH;
   const maxX = bounds.right - PADDLE_HALF_WIDTH;
   const paddleY = bounds.bottom + PADDLE_BOTTOM_OFFSET;
+
+  const BOUNCE_DURATION = 0.2; // seconds
+  const BOUNCE_HEIGHT = 0.2;
 
   useFrame((_state, delta) => {
     const speed = isDoubleSpeed.current ? DOUBLE_SPEED : SPEED;
@@ -28,9 +32,21 @@ export function usePaddle() {
     if (keys.current.ArrowRight) x.current += step;
     x.current = Math.max(minX, Math.min(maxX, x.current));
     paddlePositionRef.current = x.current;
+
+    let y = paddleY;
+    const bounce = bounceRef.current;
+    if (bounce.active) {
+      bounce.elapsed += delta;
+      const progress = Math.min(bounce.elapsed / BOUNCE_DURATION, 1);
+      y = paddleY + BOUNCE_HEIGHT * Math.sin(progress * Math.PI);
+      if (progress >= 1) {
+        bounce.active = false;
+      }
+    }
+
     ref.current?.setNextKinematicTranslation({
       x: x.current,
-      y: paddleY,
+      y,
       z: 0,
     });
   });
@@ -67,9 +83,10 @@ export function usePaddle() {
   }: {
     other: { rigidBody?: RapierRigidBody };
   }) => {
-    // Reset the one-shot flag when the ball leaves collision
     if (other.rigidBody) {
       collisionHandled.current = false;
+      bounceRef.current.active = true;
+      bounceRef.current.elapsed = 0;
     }
   };
 
