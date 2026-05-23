@@ -68,6 +68,9 @@ importers:
       lucide-react:
         specifier: ^0.577.0
         version: 0.577.0(react@19.2.6)
+      meshline:
+        specifier: ^3.3.1
+        version: 3.3.1(three@0.184.0)
       nitro:
         specifier: npm:nitro-nightly@latest
         version: nitro-nightly@3.0.1-20260512-093145-0498ce70(better-sqlite3@12.10.0)(dotenv@17.4.2)(drizzle-orm@0.45.2(@types/better-sqlite3@7.6.13)(better-sqlite3@12.10.0)(kysely@0.28.17))(jiti@2.7.0)(lru-cache@11.3.6)(vite@8.0.13(@types/node@22.19.19)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.0))

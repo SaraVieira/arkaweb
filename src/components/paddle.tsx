@@ -3,7 +3,7 @@ import { usePaddle } from "#/lib/hooks/usePaddle";
 import { PaddleModel } from "#/models/paddle";
 
 export function Paddle() {
-  const { ref, onCollisionEnter, onCollisionExit } = usePaddle();
+  const { ref, onCollisionEnter, onCollisionExit, paddleScaleX } = usePaddle();
 
   return (
     <RigidBody
@@ -13,7 +13,7 @@ export function Paddle() {
       onCollisionEnter={onCollisionEnter}
       onCollisionExit={onCollisionExit}
     >
-      <PaddleModel />
+      <PaddleModel scaleRef={paddleScaleX} />
     </RigidBody>
   );
 }

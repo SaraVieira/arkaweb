@@ -16,14 +16,15 @@ export function usePaddle() {
   const ref = useRef<RapierRigidBody | null>(null);
   const x = useRef(0);
   const collisionHandled = useRef(false);
+  const paddleScaleX = useRef(1);
   const bounceRef = useRef({ active: false, elapsed: 0 });
   const bounds = useGameBounds();
   const minX = bounds.left + PADDLE_HALF_WIDTH;
   const maxX = bounds.right - PADDLE_HALF_WIDTH;
   const paddleY = bounds.bottom + PADDLE_BOTTOM_OFFSET;
 
-  const BOUNCE_DURATION = 0.2; // seconds
-  const BOUNCE_HEIGHT = 0.2;
+  const BOUNCE_DURATION = 0.1; // seconds
+  const BOUNCE_HEIGHT = 0.6;
 
   useFrame((_state, delta) => {
     const speed = isDoubleSpeed.current ? DOUBLE_SPEED : SPEED;
@@ -38,7 +39,8 @@ export function usePaddle() {
     if (bounce.active) {
       bounce.elapsed += delta;
       const progress = Math.min(bounce.elapsed / BOUNCE_DURATION, 1);
-      y = paddleY + BOUNCE_HEIGHT * Math.sin(progress * Math.PI);
+      y = paddleY - BOUNCE_HEIGHT * Math.sin(progress * Math.PI);
+      paddleScaleX.current = 1 + 0.2 * Math.sin(progress * Math.PI);
       if (progress >= 1) {
         bounce.active = false;
       }
@@ -121,5 +123,5 @@ export function usePaddle() {
     };
   }, []);
 
-  return { keys, ref, onCollisionEnter, onCollisionExit };
+  return { keys, ref, onCollisionEnter, onCollisionExit, paddleScaleX };
 }

@@ -1,23 +1,9 @@
 import { Environment } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import {
-  Bloom,
-  EffectComposer,
-  Glitch,
-  Noise,
-  Outline,
-} from "@react-three/postprocessing";
 import { Physics } from "@react-three/rapier";
 import { createFileRoute } from "@tanstack/react-router";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import {
-  BlendFunction,
-  GlitchMode,
-  KernelSize,
-  Resolution,
-} from "postprocessing";
-import { useCallback, useEffect, useState } from "react";
-import { Vector2 } from "three";
+import { useCallback, useEffect, useMemo } from "react";
 import { Background } from "#/components/Background";
 import { Ball } from "#/components/ball";
 import { Enemy } from "#/components/enemy";
@@ -38,6 +24,7 @@ import {
   roundAtom,
   scoreAtom,
 } from "#/lib/game-store";
+import { Effects } from "#/components/Effects";
 
 export const Game = () => {
   const loadLevel = useSetAtom(loadLevelAtom);
@@ -45,7 +32,6 @@ export const Game = () => {
   const advanceLevel = useSetAtom(advanceLevelAtom);
   const enemies = useAtomValue(enemiesAtom);
   const [gameState, setGameState] = useAtom(gameStateAtom);
-  const [hit, setHit] = useState(false);
   const lives = useAtomValue(livesAtom);
   const score = useAtomValue(scoreAtom);
   const round = useAtomValue(roundAtom);
@@ -53,10 +39,21 @@ export const Game = () => {
   const [levels, setLevels] = useAtom(levelsAtom);
   const level = levels[currentLevel];
 
-  const onHit = () => {
-    setHit(true);
-    setTimeout(() => setHit(false), 100);
-  };
+  const enemyElements = useMemo(
+    () =>
+      Object.keys(enemies).map((id) => {
+        const enemy = enemies[id];
+        return (
+          <Enemy
+            key={`enemy-${id}`}
+            id={id}
+            type={enemy.type}
+            position={enemy.position}
+          />
+        );
+      }),
+    [enemies],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -117,6 +114,8 @@ export const Game = () => {
         />
         <pointLight position={[-10, 10, -5]} intensity={0.5} color="#4488ff" />
 
+        <Effects />
+
         <Physics
           gravity={[0, 0, 0]}
           paused={
@@ -127,45 +126,10 @@ export const Game = () => {
           }
         >
           <Walls />
-          <Ball key={`ball-${round}`} />
           <Paddle key={`paddle-${round}`} />
-          {Object.keys(enemies).map((id) => {
-            const enemy = enemies[id];
-            return (
-              <Enemy
-                onHit={onHit}
-                key={`enemy-${id}`}
-                id={id}
-                type={enemy.type}
-                position={enemy.position}
-              />
-            );
-          })}
+          <Ball key={`ball-${round}`} />
+          {enemyElements}
         </Physics>
-        <EffectComposer>
-          <Bloom luminanceThreshold={0.4} luminanceSmoothing={1} height={300} />
-          <Noise blendFunction={BlendFunction.OVERLAY} />
-          <Glitch
-            duration={new Vector2(0.05, 0.1)}
-            strength={new Vector2(0.01, 0.05)}
-            mode={GlitchMode.CONSTANT_MILD}
-            active={hit}
-            ratio={1}
-          />
-          <Outline
-            selectionLayer={10}
-            blendFunction={BlendFunction.SCREEN}
-            edgeStrength={2.5}
-            pulseSpeed={0.0}
-            visibleEdgeColor={0xffffff}
-            hiddenEdgeColor={0x22090a}
-            width={Resolution.AUTO_SIZE}
-            height={Resolution.AUTO_SIZE}
-            kernelSize={KernelSize.LARGE}
-            blur={false}
-            xRay={true}
-          />
-        </EffectComposer>
       </Canvas>
 
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-4 text-white drop-shadow-lg">
