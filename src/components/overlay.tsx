@@ -1,4 +1,4 @@
-import { settingAtom } from "#/lib/game-store";
+import { settingAtom, settingsEnum } from "#/lib/game-store";
 import { useAtom } from "jotai";
 
 export const Overlay = ({
@@ -27,19 +27,25 @@ export const Overlay = ({
         </button>
       )}
       <div>
-        {Object.entries(settings).map(([key, value]) => (
-          <label key={key} className="mr-4">
-            <input
-              type="checkbox"
-              checked={value}
-              onChange={() =>
-                setSettings((prev) => ({ ...prev, [key]: !prev[key] }))
-              }
-              className="mr-1"
-            />
-            {key}
-          </label>
-        ))}
+        {Object.entries(settings).map(([key, value]) => {
+          const settingKey = key as settingsEnum;
+          return (
+            <label key={key} className="mr-4">
+              <input
+                type="checkbox"
+                checked={value}
+                onChange={() =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    [settingKey]: !prev[settingKey],
+                  }))
+                }
+                className="mr-1"
+              />
+              {key}
+            </label>
+          );
+        })}
       </div>
     </div>
   );

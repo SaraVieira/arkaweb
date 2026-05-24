@@ -65,7 +65,7 @@ export const Effects = () => {
   return (
     <EffectComposer autoClear={false}>
       {Object.entries(effectsToShow).map(([key, { enabled, component }]) =>
-        enabled ? <Fragment key={key}>{component}</Fragment> : null,
+        enabled ? <Fragment key={key}>{component}</Fragment> : <></>,
       )}
     </EffectComposer>
   );

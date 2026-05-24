@@ -24,13 +24,21 @@ export const POINTS_PER_TYPE: Record<EnemyType, number> = {
 };
 
 const INITIAL_LIVES = 3;
+export enum settingsEnum {
+  bloom = "bloom",
+  toneMapping = "toneMapping",
+  outline = "outline",
+  vignette = "vignette",
+  chromaticAberration = "chromaticAberration",
+  scanline = "scanline",
+}
 
 export const livesAtom = atom(INITIAL_LIVES);
 export const scoreAtom = atom(0);
 export const roundAtom = atom(0);
 export const currentLevelAtom = atom(0);
 export const gameStateAtom = atom<GAME_STATE>(GAME_STATE.READY);
-export const settingAtom = atom({
+export const settingAtom = atom<Record<settingsEnum, boolean>>({
   bloom: true,
   toneMapping: true,
   outline: true,
