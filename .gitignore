@@ -1,0 +1,6 @@
+.env*
+.output
+.superpowers
+dev.db
+node_modules
+.vite
