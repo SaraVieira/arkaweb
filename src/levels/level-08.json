@@ -1,0 +1,14 @@
+{
+  "id": "level-08",
+  "name": "Gauntlet",
+  "grid": [
+    [null, null, "gold", "gold", "gold", "gold", null, null],
+    [null, "silver", "silver", "gold", "gold", "silver", "silver", null],
+    ["normal", "normal", "silver", "gold", "gold", "silver", "normal", "normal"],
+    ["normal", "normal", "normal", "silver", "silver", "normal", "normal", "normal"],
+    ["silver", "normal", "normal", "normal", "normal", "normal", "normal", "silver"],
+    ["gold", "silver", "normal", "normal", "normal", "normal", "silver", "gold"],
+    ["gold", "gold", "silver", "normal", "normal", "silver", "gold", "gold"],
+    ["gold", "gold", "gold", "silver", "silver", "gold", "gold", "gold"]
+  ]
+}

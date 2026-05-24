@@ -130,9 +130,11 @@ class MeshTransmissionMaterialImpl extends THREE.MeshPhysicalMaterial {
       buffer: { value: null },
     };
 
-    this.onBeforeCompile = ((shader: Shader & {
-      defines: { [key: string]: string };
-    }) => {
+    this.onBeforeCompile = ((
+      shader: Shader & {
+        defines: { [key: string]: string };
+      },
+    ) => {
       shader.uniforms = {
         ...shader.uniforms,
         ...this.uniforms,
@@ -378,13 +380,14 @@ class MeshTransmissionMaterialImpl extends THREE.MeshPhysicalMaterial {
       );
     }) as unknown as THREE.MeshPhysicalMaterial["onBeforeCompile"];
 
-    Object.keys(this.uniforms).forEach((name) =>
+    Object.keys(this.uniforms).forEach((name) => {
       Object.defineProperty(this, name, {
-        get: () => (this.uniforms as Record<string, Uniform<unknown>>)[name].value,
+        get: () =>
+          (this.uniforms as Record<string, Uniform<unknown>>)[name].value,
         set: (v) =>
           ((this.uniforms as Record<string, Uniform<unknown>>)[name].value = v),
-      }),
-    );
+      });
+    });
   }
 }
 
@@ -419,10 +422,15 @@ export const MeshTransmissionMaterial: ForwardRefComponent<
     const fboBack = useFBO(backsideResolution || resolution);
     const fboMain = useFBO(resolution);
 
-    let oldBg;
-    let oldEnvMapIntensity;
-    let oldTone;
-    let parent: (THREE.Mesh & { material: THREE.Material | THREE.Material[] }) | undefined;
+    let oldBg:
+      | THREE.Color
+      | THREE.Texture<unknown, THREE.TextureEventMap>
+      | null;
+    let oldEnvMapIntensity: Readonly<number | undefined>;
+    let oldTone: THREE.ToneMapping;
+    let parent:
+      | (THREE.Mesh & { material: THREE.Material | THREE.Material[] })
+      | undefined;
     useFrame((state) => {
       ref.current.time = state.clock.elapsedTime;
       // Render only if the buffer matches the built-in and no transmission sampler is set
@@ -493,7 +501,7 @@ export const MeshTransmissionMaterial: ForwardRefComponent<
         ref={ref as any}
         {...props}
         buffer={buffer || fboMain.texture}
-        // @ts-ignore
+        // @ts-expect-error
         _transmission={transmission}
         // In order for this to not incur extra cost "transmission" must be set to 0 and treated as a reserved prop.
         // This is because THREE.WebGLRenderer will check for transmission > 0 and execute extra renders.

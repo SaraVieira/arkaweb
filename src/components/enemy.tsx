@@ -1,7 +1,7 @@
 import type { RigidBodyOptions } from "@react-three/rapier";
 import { RigidBody } from "@react-three/rapier";
 import * as THREE from "three";
-import { EnemyType } from "#/lib/game-store";
+import type { EnemyType } from "#/lib/game-store";
 import { EnemyModel } from "#/models/enemy";
 import { useEnemy } from "#/lib/hooks/useEnemy";
 

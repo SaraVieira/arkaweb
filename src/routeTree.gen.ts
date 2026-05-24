@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as GameRouteImport } from './routes/game'
 import { Route as EditorRouteImport } from './routes/editor'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiExampleRouteImport } from './routes/api/example'
 
 const GameRoute = GameRouteImport.update({
   id: '/game',
@@ -29,44 +28,35 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiExampleRoute = ApiExampleRouteImport.update({
-  id: '/api/example',
-  path: '/api/example',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/editor': typeof EditorRoute
   '/game': typeof GameRoute
-  '/api/example': typeof ApiExampleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/editor': typeof EditorRoute
   '/game': typeof GameRoute
-  '/api/example': typeof ApiExampleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/editor': typeof EditorRoute
   '/game': typeof GameRoute
-  '/api/example': typeof ApiExampleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/editor' | '/game' | '/api/example'
+  fullPaths: '/' | '/editor' | '/game'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/editor' | '/game' | '/api/example'
-  id: '__root__' | '/' | '/editor' | '/game' | '/api/example'
+  to: '/' | '/editor' | '/game'
+  id: '__root__' | '/' | '/editor' | '/game'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EditorRoute: typeof EditorRoute
   GameRoute: typeof GameRoute
-  ApiExampleRoute: typeof ApiExampleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,13 +82,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/example': {
-      id: '/api/example'
-      path: '/api/example'
-      fullPath: '/api/example'
-      preLoaderRoute: typeof ApiExampleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -106,7 +89,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EditorRoute: EditorRoute,
   GameRoute: GameRoute,
-  ApiExampleRoute: ApiExampleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

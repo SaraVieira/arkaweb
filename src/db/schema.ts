@@ -7,6 +7,7 @@ export const scores = sqliteTable("scores", {
   }),
   name: text("name"),
   score: integer("score"),
+  duration: integer("duration"),
   createdAt: integer("created_at", { mode: "timestamp" }).default(
     sql`(unixepoch())`,
   ),

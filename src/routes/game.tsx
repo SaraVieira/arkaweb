@@ -6,7 +6,9 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo } from "react";
 import { Background } from "#/components/Background";
 import { Ball } from "#/components/ball";
+import { Effects } from "#/components/Effects";
 import { Enemy } from "#/components/enemy";
+import { GameEndOverlay } from "#/components/GameEndOverlay";
 import { Overlay } from "#/components/overlay";
 import { Paddle } from "#/components/paddle";
 import { Walls } from "#/components/walls";
@@ -16,15 +18,16 @@ import {
   currentLevelAtom,
   enemiesAtom,
   GAME_STATE,
+  gameStartTimeAtom,
   gameStateAtom,
   levelsAtom,
   livesAtom,
   loadLevelAtom,
+  playDurationAtom,
   resetGameAtom,
   roundAtom,
   scoreAtom,
 } from "#/lib/game-store";
-import { Effects } from "#/components/Effects";
 
 export const Game = () => {
   const loadLevel = useSetAtom(loadLevelAtom);
@@ -37,6 +40,9 @@ export const Game = () => {
   const round = useAtomValue(roundAtom);
   const currentLevel = useAtomValue(currentLevelAtom);
   const [levels, setLevels] = useAtom(levelsAtom);
+  const gameStartTime = useAtomValue(gameStartTimeAtom);
+  const playDuration = useAtomValue(playDurationAtom);
+  const setGameStartTime = useSetAtom(gameStartTimeAtom);
   const level = levels[currentLevel];
 
   const enemyElements = useMemo(
@@ -72,6 +78,9 @@ export const Game = () => {
       if (e.key === " ") {
         e.preventDefault();
         if (gameState === GAME_STATE.READY) {
+          if (gameStartTime === null) {
+            setGameStartTime(Date.now());
+          }
           setGameState(GAME_STATE.PLAYING);
         } else if (gameState === GAME_STATE.PLAYING) {
           setGameState(GAME_STATE.PAUSED);
@@ -80,7 +89,7 @@ export const Game = () => {
         }
       }
     },
-    [gameState, setGameState],
+    [gameState, setGameState, gameStartTime, setGameStartTime],
   );
 
   useEffect(() => {
@@ -161,20 +170,20 @@ export const Game = () => {
       )}
 
       {gameState === GAME_STATE.GAME_OVER && (
-        <Overlay
+        <GameEndOverlay
           title="GAME OVER"
-          subtitle={`Final score: ${score.toLocaleString()}`}
-          actionLabel="Play again"
-          onAction={resetGame}
+          score={score}
+          duration={playDuration}
+          onPlayAgain={resetGame}
         />
       )}
 
       {gameState === GAME_STATE.WON && (
-        <Overlay
+        <GameEndOverlay
           title="YOU WIN!"
-          subtitle={`Final score: ${score.toLocaleString()}`}
-          actionLabel="Play again"
-          onAction={resetGame}
+          score={score}
+          duration={playDuration}
+          onPlayAgain={resetGame}
         />
       )}
     </div>

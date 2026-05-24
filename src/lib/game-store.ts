@@ -30,10 +30,21 @@ export const scoreAtom = atom(0);
 export const roundAtom = atom(0);
 export const currentLevelAtom = atom(0);
 export const gameStateAtom = atom<GAME_STATE>(GAME_STATE.READY);
+export const settingAtom = atom({
+  bloom: true,
+  toneMapping: true,
+  outline: true,
+  vignette: true,
+  chromaticAberration: true,
+  scanline: true,
+});
 
 export const enemiesAtom = atom<
   Record<string, { position: [number, number, number]; type: EnemyType }>
 >({});
+
+export const gameStartTimeAtom = atom<number | null>(null);
+export const playDurationAtom = atom(0);
 
 const gridToWorld = (row: number, col: number): [number, number, number] => [
   START_X + col * CELL_WIDTH,
@@ -75,12 +86,14 @@ export const destroyEnemyAtom = atom(
     const remaining = get(enemiesAtom);
     if (Object.keys(remaining).length === 0) {
       const next = get(currentLevelAtom) + 1;
-      set(
-        gameStateAtom,
-        next < get(levelsAtom).length
-          ? GAME_STATE.LEVEL_COMPLETE
-          : GAME_STATE.WON,
-      );
+      const isWon = next >= get(levelsAtom).length;
+      if (isWon) {
+        const startTime = get(gameStartTimeAtom);
+        if (startTime !== null) {
+          set(playDurationAtom, Math.round((Date.now() - startTime) / 1000));
+        }
+      }
+      set(gameStateAtom, isWon ? GAME_STATE.WON : GAME_STATE.LEVEL_COMPLETE);
     }
   },
 );
@@ -121,5 +134,7 @@ export const resetGameAtom = atom(null, (get, set) => {
   set(currentLevelAtom, 0);
   set(gameStateAtom, GAME_STATE.READY);
   set(roundAtom, get(roundAtom) + 1);
+  set(gameStartTimeAtom, null);
+  set(playDurationAtom, 0);
   set(loadLevelAtom);
 });

@@ -1,0 +1,10 @@
+{
+  "id": "level-06",
+  "name": "Pyramid",
+  "grid": [
+    [null, null, null, "gold", "gold", null, null, null],
+    [null, null, "silver", "silver", "silver", "silver", null, null],
+    [null, "normal", "normal", "normal", "normal", "normal", "normal", null],
+    ["normal", "normal", "normal", "normal", "normal", "normal", "normal", "normal"]
+  ]
+}

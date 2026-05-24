@@ -7,12 +7,14 @@ import { scores } from "#/db/schema";
 const submitScoreSchema = z.object({
   name: z.string().trim().min(1).max(32),
   score: z.number().int().nonnegative(),
+  duration: z.number().int().nonnegative().optional(),
 });
 
 export type ScoreEntry = {
   id: number;
   name: string | null;
   score: number | null;
+  duration: number | null;
   createdAt: Date | null;
 };
 
@@ -21,7 +23,7 @@ export const submitScoreFn = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<ScoreEntry> => {
     const [row] = await db
       .insert(scores)
-      .values({ name: data.name, score: data.score })
+      .values({ name: data.name, score: data.score, duration: data.duration ?? null })
       .returning();
     return row;
   });

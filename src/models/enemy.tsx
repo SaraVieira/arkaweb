@@ -3,10 +3,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import type { JSX } from "react/jsx-runtime";
 import { EnemyType } from "#/levels";
-import {
-  registerOutline,
-  unregisterOutline,
-} from "#/lib/outline-selection";
+import { registerOutline, unregisterOutline } from "#/lib/outline-selection";
 import type { GLTF } from "three-stdlib";
 
 type GLTFResult = GLTF & {
@@ -38,7 +35,7 @@ export function EnemyModel(
     const c = new THREE.Color(base);
     if (flash) return new THREE.Color("white");
     return c;
-  }, [base, flash]);
+  }, [base, flash, type]);
 
   const material = useMemo(
     () =>
