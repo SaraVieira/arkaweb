@@ -1,4 +1,4 @@
-import { EnemyType } from "./game-store";
+import { EnemyType } from "#/levels";
 
 // direction changes come from collision normals + paddle deflection.
 export const BALL_SPEED = 20;
