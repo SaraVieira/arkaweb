@@ -57,8 +57,8 @@ Paste minimal `usePaddle.ts` (~30 lines: keys + `useFrame` translating x), then 
 ### 7:30–9:30 — Paddle deflects the ball ← THE INSIGHT BEAT
 Add `onCollisionEnter` to `usePaddle`: offset from paddle center → exit angle. Wire to `<RigidBody>`. Now where you hit the paddle changes the ball's direction. **This is what makes it a game.** Live-edit `PADDLE_MAX_ANGLE` in `consts.ts` to a **pre-decided** `2.5` (don't take audience suggestions — higher can tunnel) to show the ball flying near-horizontal. Restore to `1.15`.
 
-### 9:30–12:00 — Ball: Trail + speed clamp + `MIN_VY_RATIO` ← THE OTHER INSIGHT BEAT
-Paste a minimal `useBall.ts` (~20 lines) — just speed clamp + horizontal guard. Paste `ball.tsx` wrapping the existing RigidBody in `<Trail>`. Replace inline ball in App.tsx with `<Ball />`. Live-edit `MIN_VY_RATIO` to `0` → ball ends up purely horizontal forever → restore to `0.25`. *"This single line is what stops the game from being broken."*
+### 9:30–12:00 — Ball: Trail + speed clamp
+Paste a minimal `useBall.ts` (~15 lines) — normalize the velocity vector and re-apply at `BALL_SPEED`. Paste `ball.tsx` wrapping the existing RigidBody in `<Trail>`. Replace inline ball in App.tsx with `<Ball />`. Live-edit `BALL_SPEED` in `consts.ts` from `20` → `40` for fast-mode, then `10` for slow-mo, restore. *"One constant controls the whole game's pace."*
 
 ### 12:00–15:30 — Bricks (3 small sub-steps)
 **9a (1 min)**: paste a 12-line `Enemy` (plain white box). App.tsx expands the level grid into positions with `useMemo`, renders `<Enemy>` per cell. 24 white bricks.
@@ -111,6 +111,6 @@ The audience leaves having seen the destination *after* understanding how to get
 ## Risks
 
 - **Beats 2–5 are all typed live** (small bits each). They're short but back-to-back — rehearse the transitions.
-- **Beats 7 and 8 are the insight beats.** Paddle deflection (offset → angle) and `MIN_VY_RATIO` (the horizontal-stuck fix). Don't rush these — they're the "huh" moments the audience came for.
+- **Beat 7 is the insight beat.** Paddle deflection (offset → angle). Don't rush — it's the "huh" moment the audience came for.
 - **Beat 10 is the heaviest paste** — game-store + useBall + ball.tsx + usePaddle edit. One missed paste cascades. Rehearse this transition twice. Success criterion is *"ball dies on floor escape, GAME_OVER state fires"*, even though nothing's rendered yet.
 - **The polish reveal carries the talk.** If you have to cut for time, cut earlier beats — never this one.

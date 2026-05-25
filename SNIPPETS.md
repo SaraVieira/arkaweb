@@ -52,7 +52,7 @@ Add a sphere mesh after the lights:
 
 ```tsx
 <mesh>
-  <sphereGeometry args={[0.5, 32, 32]} />
+  <sphereGeometry args={[0.5]} />
   <meshStandardMaterial color="white" />
 </mesh>
 ```
@@ -90,10 +90,10 @@ export function App() {
             restitution={1}
             friction={0}
             lockRotations
-            linearVelocity={[6, 8, 0]}
+            linearVelocity={[12, 16, 0]}
           >
             <mesh>
-              <sphereGeometry args={[0.5, 32, 32]} />
+              <sphereGeometry args={[0.5]} />
               <meshStandardMaterial color="white" />
             </mesh>
           </RigidBody>
@@ -104,7 +104,7 @@ export function App() {
 }
 ```
 
-✅ Ball bounces between left/right/ceiling. After a few bounces it drifts past the open bottom and escapes — *"we need to catch this thing."*
+✅ Ball bounces between left/right/ceiling. After a few bounces it drifts past the open bottom and escapes — _"we need to catch this thing."_
 
 **Talking points**: `restitution: 1` = perfectly elastic (no energy loss). `friction: 0` = no drag. Zero gravity because arkanoid is 2D pretending to be 3D. Walls are colliders, not visible — toggle `<Physics debug>` to see them, then remove.
 
@@ -138,12 +138,20 @@ export function usePaddle() {
     if (keys.current.ArrowLeft) x.current -= step;
     if (keys.current.ArrowRight) x.current += step;
     x.current = Math.max(minX, Math.min(maxX, x.current));
-    ref.current?.setNextKinematicTranslation({ x: x.current, y: paddleY, z: 0 });
+    ref.current?.setNextKinematicTranslation({
+      x: x.current,
+      y: paddleY,
+      z: 0,
+    });
   });
 
   useEffect(() => {
-    const onDown = (e: KeyboardEvent) => { keys.current[e.key] = true; };
-    const onUp = (e: KeyboardEvent) => { keys.current[e.key] = false; };
+    const onDown = (e: KeyboardEvent) => {
+      keys.current[e.key] = true;
+    };
+    const onUp = (e: KeyboardEvent) => {
+      keys.current[e.key] = false;
+    };
     window.addEventListener("keydown", onDown);
     window.addEventListener("keyup", onUp);
     return () => {
@@ -190,12 +198,11 @@ This is the "huh" insight. Right now ball bounces off paddle at whatever angle i
 Add to `src/lib/hooks/usePaddle.ts` (above the `useEffect`):
 
 ```ts
-import { BALL_SPEED, PADDLE_MAX_ANGLE } from "../consts";
-
-// inside usePaddle, near the other handlers:
 const onCollisionEnter = ({
   other,
-}: { other: { rigidBody?: RapierRigidBody } }) => {
+}: {
+  other: { rigidBody?: RapierRigidBody };
+}) => {
   const ball = other.rigidBody;
   if (!ball) return;
   const offset = (ball.translation().x - x.current) / PADDLE_HALF_WIDTH;
@@ -206,9 +213,6 @@ const onCollisionEnter = ({
     true,
   );
 };
-
-// then in the return:
-return { ref, onCollisionEnter };
 ```
 
 Edit `src/components/paddle.tsx` — wire it up:
@@ -226,13 +230,13 @@ const { ref, onCollisionEnter } = usePaddle();
 
 ✅ Hit the ball near the paddle's left edge → it flies up-left. Hit near the right → up-right. Hit dead center → straight up. **This is what makes it a game.**
 
-**Talking points**: offset normalized to `[-1, 1]`, clamped to `[-0.5, 0.5]` to avoid extreme angles, multiplied by `PADDLE_MAX_ANGLE` (~65°). The new velocity is computed from that angle, magnitude preserved at `BALL_SPEED`. Open `src/lib/consts.ts` and live-edit `PADDLE_MAX_ANGLE` to `2.5` (pre-decided — don't take audience suggestions, higher values can tunnel through walls) to show the ball flying near-horizontally — *"this number is the difference between fun and broken."* Restore to `1.15`.
+**Talking points**: offset normalized to `[-1, 1]`, clamped to `[-0.5, 0.5]` to avoid extreme angles, multiplied by `PADDLE_MAX_ANGLE` (~65°). The new velocity is computed from that angle, magnitude preserved at `BALL_SPEED`. Open `src/lib/consts.ts` and live-edit `PADDLE_MAX_ANGLE` to `2.5` (pre-decided — don't take audience suggestions, higher values can tunnel through walls) to show the ball flying near-horizontally — _"this number is the difference between fun and broken."_ Restore to `1.15`.
 
 ---
 
-## Beat 8 (9:30–12:00) — Ball: Trail + speed clamp (the `MIN_VY_RATIO` moment)
+## Beat 8 (9:30–12:00) — Ball: Trail + speed clamp
 
-The ball is bouncing nicely but two problems lurk: (1) no visual trail, (2) if the deflection angle gets steep, the ball can end up moving purely horizontal between two walls forever.
+Two improvements: (1) a visual trail behind the ball, (2) clamp the ball's speed to a constant so `BALL_SPEED` actually means something.
 
 Open the empty `src/lib/hooks/useBall.ts`, paste:
 
@@ -240,7 +244,7 @@ Open the empty `src/lib/hooks/useBall.ts`, paste:
 import { useFrame } from "@react-three/fiber";
 import type { RapierRigidBody } from "@react-three/rapier";
 import { useRef } from "react";
-import { BALL_SPEED, MIN_VY_RATIO } from "../consts";
+import { BALL_SPEED } from "../consts";
 
 export const useBall = () => {
   const ref = useRef<RapierRigidBody | null>(null);
@@ -251,13 +255,10 @@ export const useBall = () => {
     const v = body.linvel();
     const mag = Math.hypot(v.x, v.y);
     if (mag < 0.001) return;
-    let nx = v.x / mag;
-    let ny = v.y / mag;
-    if (Math.abs(ny) < MIN_VY_RATIO) {
-      ny = Math.sign(ny || 1) * MIN_VY_RATIO;
-      nx = Math.sign(nx || 1) * Math.sqrt(Math.max(0, 1 - ny * ny));
-    }
-    body.setLinvel({ x: nx * BALL_SPEED, y: ny * BALL_SPEED, z: 0 }, true);
+    body.setLinvel(
+      { x: (v.x / mag) * BALL_SPEED, y: (v.y / mag) * BALL_SPEED, z: 0 },
+      true,
+    );
   });
 
   return { ref };
@@ -278,7 +279,7 @@ extend({ MeshLineGeometry, MeshLineMaterial });
 export function Ball() {
   const { ref } = useBall();
   return (
-    <Trail width={0.6} length={2} decay={1} stride={0.03} interval={1}>
+    <Trail width={0.6} length={2} stride={0.03}>
       <meshLineMaterial
         lineWidth={1}
         color="#88ccff"
@@ -295,7 +296,7 @@ export function Ball() {
         linearVelocity={[6, 8, 0]}
       >
         <mesh>
-          <sphereGeometry args={[0.5, 32, 32]} />
+          <sphereGeometry args={[0.5]} />
           <meshStandardMaterial color="white" />
         </mesh>
       </RigidBody>
@@ -332,10 +333,9 @@ export function App() {
 
 ✅ Ball trails a cyan line behind it as it bounces. Speed stays constant.
 
-**The live edit moment**: open `src/lib/consts.ts`, change `MIN_VY_RATIO` from `0.25` → `0`, save. Hit the ball until it ends up nearly horizontal — it stays horizontal forever, bouncing between walls. Change back to `0.25`. *"This single line is what stops the game from being broken."*
+**Live edit moment**: open `src/lib/consts.ts`, change `BALL_SPEED` from `20` to `40`, save. Ball doubles speed instantly. Drop to `10` for slow-mo. Restore to `20`. _"The hook normalizes direction and multiplies by this number — that's why one constant controls the whole game's pace."_
 
 ---
-
 
 ## Beat 9 (12:00–15:30) — Bricks (built in 3 small steps)
 
@@ -350,7 +350,12 @@ import { RigidBody } from "@react-three/rapier";
 
 export function Enemy({ position }: { position: [number, number, number] }) {
   return (
-    <RigidBody type="fixed" colliders="cuboid" position={position} restitution={1}>
+    <RigidBody
+      type="fixed"
+      colliders="cuboid"
+      position={position}
+      restitution={1}
+    >
       <mesh>
         <boxGeometry args={[2.5, 1, 1]} />
         <meshStandardMaterial color="white" />
@@ -375,14 +380,16 @@ const bricks = useMemo(
     levels[0].grid.flatMap((row, r) =>
       row.flatMap((type, c) =>
         type
-          ? [{
-              id: `${r}-${c}`,
-              position: [
-                START_X + c * CELL_WIDTH,
-                START_Y - r * CELL_HEIGHT,
-                0,
-              ] as [number, number, number],
-            }]
+          ? [
+              {
+                id: `${r}-${c}`,
+                position: [
+                  START_X + c * CELL_WIDTH,
+                  START_Y - r * CELL_HEIGHT,
+                  0,
+                ] as [number, number, number],
+              },
+            ]
           : [],
       ),
     ),
@@ -390,9 +397,9 @@ const bricks = useMemo(
 );
 
 // inside <Physics>, after <Ball />:
-{bricks.map((b) => (
-  <Enemy key={b.id} position={b.position} />
-))}
+{
+  bricks.map((b) => <Enemy key={b.id} position={b.position} />);
+}
 ```
 
 ✅ 24 white bricks in a grid. Ball bounces off them. They can't be destroyed yet.
@@ -425,7 +432,12 @@ export function Enemy({
   position: [number, number, number];
 }) {
   return (
-    <RigidBody type="fixed" colliders="cuboid" position={position} restitution={1}>
+    <RigidBody
+      type="fixed"
+      colliders="cuboid"
+      position={position}
+      restitution={1}
+    >
       <mesh>
         <boxGeometry args={[2.5, 1, 1]} />
         <meshStandardMaterial color={COLOR[type]} />
@@ -443,15 +455,17 @@ const bricks = useMemo(
     levels[0].grid.flatMap((row, r) =>
       row.flatMap((type, c) =>
         type
-          ? [{
-              id: `${r}-${c}`,
-              type,
-              position: [
-                START_X + c * CELL_WIDTH,
-                START_Y - r * CELL_HEIGHT,
-                0,
-              ] as [number, number, number],
-            }]
+          ? [
+              {
+                id: `${r}-${c}`,
+                type,
+                position: [
+                  START_X + c * CELL_WIDTH,
+                  START_Y - r * CELL_HEIGHT,
+                  0,
+                ] as [number, number, number],
+              },
+            ]
           : [],
       ),
     ),
@@ -459,9 +473,9 @@ const bricks = useMemo(
 );
 
 // later:
-{bricks.map((b) => (
-  <Enemy key={b.id} type={b.type} position={b.position} />
-))}
+{
+  bricks.map((b) => <Enemy key={b.id} type={b.type} position={b.position} />);
+}
 ```
 
 ✅ Blue bricks. Open `level-01.json`, change one cell from `"normal"` to `"silver"` — that brick turns grey. Another to `"gold"` — yellow. _"This is what types add. Instant variation from a JSON edit."_
@@ -527,7 +541,9 @@ const enemyElements = useMemo(
 );
 
 // in JSX, replace {bricks.map(...)} with:
-{enemyElements}
+{
+  enemyElements;
+}
 ```
 
 Edit `src/components/enemy.tsx` — add `id` prop and a collision handler:
@@ -583,7 +599,7 @@ The ball can hit bricks but it can't lose. This beat adds the lose condition: th
 
 We extend `game-store.ts` with the state machine, give `useBall` knowledge of `gameStateAtom` (so it spawns above the paddle when READY and triggers GAME_OVER on floor), and give `usePaddle` a `paddlePositionRef` to publish.
 
-**Replace `src/lib/game-store.ts`** — extend it with the state machine, score, and the `settingAtom` we'll need for effects toggling:
+**Replace `src/lib/game-store.ts`** — extend with the state machine, lives, and a `WON` check. No score, no timer, no effect-toggle state — just what `useBall` and the HUD need:
 
 ```ts
 import { atom } from "jotai";
@@ -599,20 +615,15 @@ export enum GAME_STATE {
   WON = "won",
 }
 
-export enum settingsEnum {
-  bloom = "bloom",
-  vignette = "vignette",
-  chromaticAberration = "chromaticAberration",
-  scanline = "scanline",
-}
-
 export const paddlePositionRef = { current: 0 };
 
 const INITIAL_LIVES = 3;
-const POINTS: Record<EnemyType, number> = { normal: 10, silver: 25, gold: 50 };
 
 const buildEnemies = () => {
-  const next: Record<string, { position: [number, number, number]; type: EnemyType }> = {};
+  const next: Record<
+    string,
+    { position: [number, number, number]; type: EnemyType }
+  > = {};
   levels[0].grid.forEach((row, r) => {
     row.forEach((type, c) => {
       if (type) {
@@ -628,58 +639,33 @@ const buildEnemies = () => {
 
 export const gameStateAtom = atom<GAME_STATE>(GAME_STATE.READY);
 export const livesAtom = atom(INITIAL_LIVES);
-export const scoreAtom = atom(0);
-export const gameStartTimeAtom = atom<number | null>(null);
-export const playDurationAtom = atom(0);
-export const settingAtom = atom<Record<settingsEnum, boolean>>({
-  bloom: true,
-  vignette: true,
-  chromaticAberration: true,
-  scanline: true,
+
+export const enemiesAtom =
+  atom<Record<string, { position: [number, number, number]; type: EnemyType }>>(
+    buildEnemies(),
+  );
+
+export const destroyEnemyAtom = atom(null, (get, set, id: string) => {
+  set(enemiesAtom, (prev) => {
+    const next = { ...prev };
+    delete next[id];
+    return next;
+  });
+  if (Object.keys(get(enemiesAtom)).length === 0) {
+    set(gameStateAtom, GAME_STATE.WON);
+  }
 });
 
-export const enemiesAtom = atom<
-  Record<string, { position: [number, number, number]; type: EnemyType }>
->(buildEnemies());
-
-export const destroyEnemyAtom = atom(
-  null,
-  (get, set, { id, type }: { id: string; type: EnemyType }) => {
-    set(enemiesAtom, (prev) => {
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
-    set(scoreAtom, get(scoreAtom) + POINTS[type]);
-    if (Object.keys(get(enemiesAtom)).length === 0) {
-      const startTime = get(gameStartTimeAtom);
-      if (startTime !== null) {
-        set(playDurationAtom, Math.round((Date.now() - startTime) / 1000));
-      }
-      set(gameStateAtom, GAME_STATE.WON);
-    }
-  },
-);
-
 export const resetGameAtom = atom(null, (_get, set) => {
-  set(scoreAtom, 0);
   set(livesAtom, INITIAL_LIVES);
   set(gameStateAtom, GAME_STATE.READY);
-  set(gameStartTimeAtom, null);
-  set(playDurationAtom, 0);
   set(enemiesAtom, buildEnemies());
 });
 ```
 
-The `buildEnemies` helper now lives in game-store, called both as the `enemiesAtom` initial value and on reset. This means **App.tsx no longer needs its level-loading `useEffect`** — drop that.
+`buildEnemies` now lives in game-store and seeds `enemiesAtom`. App.tsx's level-loading `useEffect` becomes redundant (it just re-writes the same data) — leave it for now, beat 11 replaces App.tsx wholesale.
 
-`destroyEnemyAtom` now takes `{ id, type }` instead of just `id`. Update the one call site:
-
-**Edit `src/components/enemy.tsx`** — change `destroy(id)` to `destroy({ id, type })`:
-
-```tsx
-onCollisionEnter={() => destroy({ id, type })}
-```
+`destroyEnemyAtom` keeps its `(id: string)` signature from beat 9c — no Enemy change needed. We just added the "all bricks gone → WON" branch.
 
 **Edit `src/lib/hooks/usePaddle.ts`** — add one line so the paddle's position is readable by the ball:
 
@@ -698,14 +684,12 @@ import { useFrame } from "@react-three/fiber";
 import type { RapierRigidBody } from "@react-three/rapier";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useRef } from "react";
-import { BALL_SPEED, MIN_VY_RATIO } from "../consts";
+import { BALL_SPEED } from "../consts";
 import {
   GAME_STATE,
-  gameStartTimeAtom,
   gameStateAtom,
   livesAtom,
   paddlePositionRef,
-  playDurationAtom,
 } from "../game-store";
 import { useGameBounds } from "./useGameBounds";
 
@@ -717,11 +701,11 @@ export const useBall = () => {
   const ref = useRef<RapierRigidBody | null>(null);
   const [lives, setLives] = useAtom(livesAtom);
   const livesRef = useRef(lives);
-  useEffect(() => { livesRef.current = lives; }, [lives]);
+  useEffect(() => {
+    livesRef.current = lives;
+  }, [lives]);
   const gameState = useAtomValue(gameStateAtom);
   const setGameState = useSetAtom(gameStateAtom);
-  const setPlayDuration = useSetAtom(playDurationAtom);
-  const gameStartTime = useAtomValue(gameStartTimeAtom);
   const bounds = useGameBounds();
   const paddleY = bounds.bottom + PADDLE_BOTTOM_OFFSET;
   const floorY = bounds.bottom - FLOOR_THICKNESS;
@@ -731,7 +715,11 @@ export const useBall = () => {
     if (!body) return;
     if (gameState === GAME_STATE.READY) {
       body.setTranslation(
-        { x: paddlePositionRef.current, y: paddleY + BALL_SPAWN_OFFSET_Y, z: 0 },
+        {
+          x: paddlePositionRef.current,
+          y: paddleY + BALL_SPAWN_OFFSET_Y,
+          z: 0,
+        },
         true,
       );
       body.setLinvel({ x: 0, y: 0, z: 0 }, true);
@@ -742,13 +730,10 @@ export const useBall = () => {
     const v = body.linvel();
     const mag = Math.hypot(v.x, v.y);
     if (mag < 0.001) return;
-    let nx = v.x / mag;
-    let ny = v.y / mag;
-    if (Math.abs(ny) < MIN_VY_RATIO) {
-      ny = Math.sign(ny || 1) * MIN_VY_RATIO;
-      nx = Math.sign(nx || 1) * Math.sqrt(Math.max(0, 1 - ny * ny));
-    }
-    body.setLinvel({ x: nx * BALL_SPEED, y: ny * BALL_SPEED, z: 0 }, true);
+    body.setLinvel(
+      { x: (v.x / mag) * BALL_SPEED, y: (v.y / mag) * BALL_SPEED, z: 0 },
+      true,
+    );
   });
 
   useEffect(() => {
@@ -759,21 +744,21 @@ export const useBall = () => {
     if (Math.abs(v.x) > 0.01 || Math.abs(v.y) > 0.01) return;
     const angle = (Math.random() - 0.5) * 0.6;
     body.setLinvel(
-      { x: Math.sin(angle) * BALL_SPEED, y: Math.cos(angle) * BALL_SPEED, z: 0 },
+      {
+        x: Math.sin(angle) * BALL_SPEED,
+        y: Math.cos(angle) * BALL_SPEED,
+        z: 0,
+      },
       true,
     );
   }, [gameState]);
 
   const onFloorCollision = () => {
-    const body = ref.current;
     const currentLives = livesRef.current;
     if (currentLives <= 1) {
       setLives(0);
-      if (gameStartTime !== null) {
-        setPlayDuration(Math.round((Date.now() - gameStartTime) / 1000));
-      }
       setGameState(GAME_STATE.GAME_OVER);
-      body?.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      ref.current?.setLinvel({ x: 0, y: 0, z: 0 }, true);
       return;
     }
     setLives(currentLives - 1);
@@ -799,7 +784,7 @@ export function Ball() {
   const { onFloorCollision, ref, floorY } = useBall();
   return (
     <>
-      <Trail width={0.6} length={2} decay={1} stride={0.03} interval={1}>
+      <Trail width={0.6} length={2} stride={0.03}>
         <meshLineMaterial
           lineWidth={1}
           color="#88ccff"
@@ -815,7 +800,7 @@ export function Ball() {
           lockRotations
         >
           <mesh>
-            <sphereGeometry args={[0.5, 32, 32]} />
+            <sphereGeometry args={[0.5]} />
             <meshStandardMaterial color="white" />
           </mesh>
         </RigidBody>
@@ -844,30 +829,21 @@ Now we give the state machine a face: score/lives at the top, a "Press SPACE to 
 **Paste → `src/components/overlay.tsx`** (open the empty file, paste):
 
 ```tsx
-import { useAtom } from "jotai";
-import { settingAtom, settingsEnum } from "#/lib/game-store";
-
 export const Overlay = ({
   title,
   subtitle,
   actionLabel,
   onAction,
-  subtitleComponent,
-  type = "game_over",
 }: {
-  type?: "ready" | "game_over" | "level_complete" | "won" | "paused";
   title: string;
   subtitle?: string;
-  subtitleComponent?: React.ReactNode;
   actionLabel?: string;
   onAction?: () => void;
 }) => {
-  const [settings, setSettings] = useAtom(settingAtom);
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/60 text-white">
       <h2 className="text-6xl font-bold tracking-widest">{title}</h2>
       {subtitle && <p className="text-xl">{subtitle}</p>}
-      {subtitleComponent && subtitleComponent}
       {actionLabel && onAction && (
         <button
           type="button"
@@ -877,51 +853,6 @@ export const Overlay = ({
           {actionLabel}
         </button>
       )}
-
-      {type === "paused" ? (
-        <>
-          <h3 className="text-4xl font-bold tracking-widest">Effects</h3>
-          <div className="flex items-center gap-4">
-            {Object.entries(settings).map(([key, value]) => {
-              const settingKey = key as settingsEnum;
-              return (
-                <label
-                  key={key}
-                  className="flex gap-1 items-center cursor-pointer relative"
-                >
-                  <input
-                    onChange={() =>
-                      setSettings((prev) => ({
-                        ...prev,
-                        [settingKey]: !prev[settingKey],
-                      }))
-                    }
-                    checked={value}
-                    type="checkbox"
-                    className="hidden peer"
-                  />
-                  <span className="w-5 h-5 border border-slate-300 rounded relative flex items-center justify-center peer-checked:border-green-300"></span>
-                  <svg
-                    className="absolute hidden peer-checked:inline left-1 top-1/2 transform -translate-y-1/2"
-                    width="11"
-                    height="8"
-                    viewBox="0 0 11 8"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      className="fill-green-200 stroke-green-200"
-                      d="m10.092.952-.005-.006-.006-.005A.45.45 0 0 0 9.43.939L4.162 6.23 1.585 3.636a.45.45 0 0 0-.652 0 .47.47 0 0 0 0 .657l.002.002L3.58 6.958a.8.8 0 0 0 .567.242.78.78 0 0 0 .567-.242l5.333-5.356a.474.474 0 0 0 .044-.65Zm-5.86 5.349V6.3Z"
-                      stroke-width=".4"
-                    />
-                  </svg>
-                  <span className="text-gray-200 select-none">{key}</span>
-                </label>
-              );
-            })}
-          </div>
-        </>
-      ) : null}
     </div>
   );
 };
@@ -933,7 +864,7 @@ export const Overlay = ({
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Ball } from "#/components/ball";
 import { Enemy } from "#/components/enemy";
 import { Overlay } from "#/components/overlay";
@@ -942,21 +873,16 @@ import { Walls } from "#/components/walls";
 import {
   enemiesAtom,
   GAME_STATE,
-  gameStartTimeAtom,
   gameStateAtom,
   livesAtom,
   resetGameAtom,
-  scoreAtom,
 } from "#/lib/game-store";
 
 export function App() {
   const enemies = useAtomValue(enemiesAtom);
   const [gameState, setGameState] = useAtom(gameStateAtom);
   const lives = useAtomValue(livesAtom);
-  const score = useAtomValue(scoreAtom);
   const resetGame = useSetAtom(resetGameAtom);
-  const gameStartTime = useAtomValue(gameStartTimeAtom);
-  const setGameStartTime = useSetAtom(gameStartTimeAtom);
 
   const enemyElements = useMemo(
     () =>
@@ -966,27 +892,17 @@ export function App() {
     [enemies],
   );
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === " ") {
-        e.preventDefault();
-        if (gameState === GAME_STATE.READY) {
-          if (gameStartTime === null) setGameStartTime(Date.now());
-          setGameState(GAME_STATE.PLAYING);
-        } else if (gameState === GAME_STATE.PLAYING) {
-          setGameState(GAME_STATE.PAUSED);
-        } else if (gameState === GAME_STATE.PAUSED) {
-          setGameState(GAME_STATE.PLAYING);
-        }
-      }
-    },
-    [gameState, setGameState, gameStartTime, setGameStartTime],
-  );
-
   useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== " ") return;
+      e.preventDefault();
+      if (gameState === GAME_STATE.READY) setGameState(GAME_STATE.PLAYING);
+      else if (gameState === GAME_STATE.PLAYING) setGameState(GAME_STATE.PAUSED);
+      else if (gameState === GAME_STATE.PAUSED) setGameState(GAME_STATE.PLAYING);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [gameState, setGameState]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
@@ -1006,39 +922,26 @@ export function App() {
         </Physics>
       </Canvas>
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-4 text-white drop-shadow-lg">
-        <div className="text-xl">Score: {score.toLocaleString()}</div>
-        <div className="text-xl">Lives: {lives}</div>
+      <div className="pointer-events-none absolute top-4 right-4 text-xl text-white drop-shadow-lg">
+        Lives: {lives}
       </div>
 
-      {gameState === GAME_STATE.READY && (
-        <Overlay title="Press SPACE to start" type="ready" />
-      )}
+      {gameState === GAME_STATE.READY && <Overlay title="Press SPACE to start" />}
       {gameState === GAME_STATE.PAUSED && (
-        <Overlay title="PAUSED" type="paused" subtitle="Press space to resume" />
+        <Overlay title="PAUSED" subtitle="Press space to resume" />
       )}
       {gameState === GAME_STATE.GAME_OVER && (
-        <Overlay
-          title="GAME OVER"
-          subtitle={`Final score: ${score.toLocaleString()}`}
-          actionLabel="Play again"
-          onAction={resetGame}
-        />
+        <Overlay title="GAME OVER" actionLabel="Play again" onAction={resetGame} />
       )}
       {gameState === GAME_STATE.WON && (
-        <Overlay
-          title="YOU WIN!"
-          subtitle={`Final score: ${score.toLocaleString()}`}
-          actionLabel="Play again"
-          onAction={resetGame}
-        />
+        <Overlay title="YOU WIN!" actionLabel="Play again" onAction={resetGame} />
       )}
     </div>
   );
 }
 ```
 
-✅ Press SPACE to launch. Score updates. Die → GAME OVER → Play again. Clear all bricks → YOU WIN.
+✅ Press SPACE to launch. Die → GAME OVER → Play again. Clear all bricks → YOU WIN.
 
 ---
 
@@ -1071,57 +974,23 @@ import {
   ToneMapping,
   Vignette,
 } from "@react-three/postprocessing";
-import { useAtomValue } from "jotai";
 import { BlendFunction, Resolution, ToneMappingMode } from "postprocessing";
-import { Fragment } from "react/jsx-runtime";
 import { Vector2 } from "three";
-import { settingAtom } from "#/lib/game-store";
 
-export const Effects = () => {
-  const settings = useAtomValue(settingAtom);
-  const effectsToShow = {
-    Bloom: {
-      enabled: settings.bloom,
-      component: (
-        <Bloom
-          luminanceThreshold={0.4}
-          luminanceSmoothing={1}
-          resolutionX={Resolution.AUTO_SIZE}
-          resolutionY={Resolution.AUTO_SIZE}
-        />
-      ),
-    },
-    ToneMapping: {
-      enabled: true,
-      component: <ToneMapping mode={ToneMappingMode.CINEON} />,
-    },
-    Vignette: {
-      enabled: settings.vignette,
-      component: <Vignette eskil={false} offset={0.1} darkness={0.8} />,
-    },
-    ChromaticAberration: {
-      enabled: settings.chromaticAberration,
-      component: <ChromaticAberration offset={new Vector2(0.0008, 0.0008)} />,
-    },
-    Scanline: {
-      enabled: settings.scanline,
-      component: (
-        <Scanline
-          blendFunction={BlendFunction.OVERLAY}
-          density={1.25}
-          opacity={0.1}
-        />
-      ),
-    },
-  };
-  return (
-    <EffectComposer autoClear={false}>
-      {Object.entries(effectsToShow).map(([key, { enabled, component }]) =>
-        enabled ? <Fragment key={key}>{component}</Fragment> : <></>,
-      )}
-    </EffectComposer>
-  );
-};
+export const Effects = () => (
+  <EffectComposer autoClear={false}>
+    <Bloom
+      luminanceThreshold={0.4}
+      luminanceSmoothing={1}
+      resolutionX={Resolution.AUTO_SIZE}
+      resolutionY={Resolution.AUTO_SIZE}
+    />
+    <ToneMapping mode={ToneMappingMode.CINEON} />
+    <Vignette eskil={false} offset={0.1} darkness={0.8} />
+    <ChromaticAberration offset={new Vector2(0.0008, 0.0008)} />
+    <Scanline blendFunction={BlendFunction.OVERLAY} density={1.25} opacity={0.1} />
+  </EffectComposer>
+);
 ```
 
 **Edit `src/App.tsx`** — add Effects import + element inside Canvas (above Physics):
@@ -1133,7 +1002,7 @@ import { Effects } from "#/components/Effects";
 <Effects />;
 ```
 
-✅ Bloom + chromatic aberration + scanlines kick in. _"Toggle them with the checkboxes when paused."_
+✅ Bloom + chromatic aberration + scanlines kick in.
 
 ### 12c. Background
 
@@ -1179,8 +1048,6 @@ import { Background } from "#/components/Background";
 
 ```tsx
 import { useGLTF } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
-import { useRef, type RefObject } from "react";
 import type { JSX } from "react/jsx-runtime";
 import * as THREE from "three";
 import type { GLTF } from "three-stdlib";
@@ -1198,28 +1065,17 @@ type GLTFResult = GLTF & {
   };
 };
 
-type PaddleModelProps = JSX.IntrinsicElements["group"] & {
-  scaleRef?: RefObject<number>;
-};
-
-export function PaddleModel({ scaleRef, ...props }: PaddleModelProps) {
+export function PaddleModel(props: JSX.IntrinsicElements["group"]) {
   const { nodes, materials } = useGLTF("/paddle.glb") as unknown as GLTFResult;
-  const innerRef = useRef<THREE.Group>(null);
-
   const material = new THREE.MeshPhysicalMaterial({
     ...materials["Material.002"],
     color: "red",
     metalness: 1,
   });
 
-  useFrame(() => {
-    if (!innerRef.current || !scaleRef) return;
-    innerRef.current.scale.x = 2 * scaleRef.current;
-  });
-
   return (
     <group {...props} dispose={null}>
-      <group ref={innerRef} scale={[2, 0.5, 0.5]}>
+      <group scale={[2, 0.5, 0.5]}>
         <mesh geometry={nodes.Cube001.geometry} material={material} />
         <mesh
           geometry={nodes.Cube001_1.geometry}
@@ -1237,35 +1093,29 @@ export function PaddleModel({ scaleRef, ...props }: PaddleModelProps) {
 useGLTF.preload("/paddle.glb");
 ```
 
-**Edit `src/components/paddle.tsx`** — pull `paddleScaleX` out of the hook and swap the mesh for `<PaddleModel>`:
+**Edit `src/components/paddle.tsx`** — swap the inline `<mesh>` for `<PaddleModel />`:
 
 ```tsx
-import { type RapierRigidBody, RigidBody } from "@react-three/rapier";
+import { RigidBody } from "@react-three/rapier";
 import { usePaddle } from "#/lib/hooks/usePaddle";
 import { PaddleModel } from "#/models/paddle";
 
 export function Paddle() {
-  const { ref, onCollisionEnter, onCollisionExit, paddleScaleX } = usePaddle();
-
-  const onHit = (handler: { other: { rigidBody?: RapierRigidBody } }) => {
-    onCollisionExit(handler);
-  };
-
+  const { ref, onCollisionEnter } = usePaddle();
   return (
     <RigidBody
       ref={ref}
       colliders="cuboid"
       type="kinematicPosition"
       onCollisionEnter={onCollisionEnter}
-      onCollisionExit={onHit}
     >
-      <PaddleModel scaleRef={paddleScaleX} />
+      <PaddleModel />
     </RigidBody>
   );
 }
 ```
 
-✅ Paddle goes from a red box to a 3D model with squash-bounce on hit. Talk is visually complete.
+✅ Paddle goes from a red box to a proper 3D model. Talk is visually complete.
 
 ---
 
@@ -1295,7 +1145,7 @@ Then `git checkout main` and show:
 1. Skip 12d (GLB paddle swap) — paddle stays as red box, no harm done
 2. Skip 12c (Background) — least visual impact
 3. Skip 12b (Effects) — sad but the HDRI alone still gives the wow
-4. Drop the live edit demos in beats 7 (PADDLE_MAX_ANGLE) and 8 (MIN_VY_RATIO) — just describe what they'd do, don't actually edit
+4. Drop the live edit demos in beats 7 (PADDLE_MAX_ANGLE) and 8 (BALL_SPEED) — just describe what they'd do, don't actually edit
 5. Skip 9b (color by type) — keep all bricks white
 
 ## Risk areas
