@@ -639,16 +639,18 @@ export const useBall = () => {
 ```
 
 **Replace `src/components/ball.tsx`** — wire in the floor collider:
+
+```tsx
 <RigidBody
 type="fixed"
 colliders={false}
 position={[0, floorY, 0]}
 onCollisionEnter={onFloorCollision}
 
-> <CuboidCollider args={[30, FLOOR_THICKNESS, 30]} />
-> </RigidBody>
+  <CuboidCollider args={[30, FLOOR_THICKNESS, 30]} />
+</RigidBody>
 
-````
+```
 
 ✅ Ball respawns at the paddle when state is READY. Falls past the paddle → lives go down (silently, no UI yet) → eventually GAME_OVER and the ball freezes. Clearing all bricks → WON state, ball freezes. **The game is mechanically complete; it just looks dead.**
 
@@ -747,7 +749,7 @@ export function App() {
     </div>
   );
 }
-````
+```
 
 ✅ Press SPACE to launch. Die → GAME OVER → Play again. Clear all bricks → YOU WIN.
 
