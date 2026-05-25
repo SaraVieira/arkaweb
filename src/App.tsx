@@ -1,5 +1,4 @@
 import { Canvas } from "@react-three/fiber";
-import {} from "@react-three/drei";
 
 export function App() {
   return (
