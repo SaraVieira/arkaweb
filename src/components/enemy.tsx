@@ -59,6 +59,7 @@ export const Enemy = ({
       restitution={1}
       onCollisionEnter={handleCollision}
     >
+      <PositionalAudio url="/459150__lilmati__retro-underwater-explosion.wav" />
       <EnemyModel type={type} flash={flash} />
     </RigidBody>
   );
