@@ -8,7 +8,7 @@ import {
   Vignette,
 } from "@react-three/postprocessing";
 import { useAtomValue } from "jotai";
-import { BlendFunction, ToneMappingMode } from "postprocessing";
+import { BlendFunction, Resolution, ToneMappingMode } from "postprocessing";
 import { Fragment } from "react/jsx-runtime";
 import { Vector2 } from "three";
 
@@ -19,7 +19,12 @@ export const Effects = () => {
     Bloom: {
       enabled: settings.bloom,
       component: (
-        <Bloom luminanceThreshold={0.4} luminanceSmoothing={1} height={300} />
+        <Bloom
+          luminanceThreshold={0.4}
+          luminanceSmoothing={1}
+          resolutionX={Resolution.AUTO_SIZE}
+          resolutionY={Resolution.AUTO_SIZE}
+        />
       ),
     },
     ToneMapping: {
