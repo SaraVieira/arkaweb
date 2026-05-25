@@ -27,7 +27,6 @@ const INITIAL_LIVES = 3;
 export enum settingsEnum {
   bloom = "bloom",
   toneMapping = "toneMapping",
-  outline = "outline",
   vignette = "vignette",
   chromaticAberration = "chromaticAberration",
   scanline = "scanline",
@@ -41,7 +40,6 @@ export const gameStateAtom = atom<GAME_STATE>(GAME_STATE.READY);
 export const settingAtom = atom<Record<settingsEnum, boolean>>({
   bloom: true,
   toneMapping: true,
-  outline: true,
   vignette: true,
   chromaticAberration: true,
   scanline: true,

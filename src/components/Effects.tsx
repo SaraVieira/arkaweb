@@ -1,22 +1,19 @@
 import { settingAtom } from "#/lib/game-store";
-import { useOutlineSelection } from "#/lib/outline-selection";
 import {
   Bloom,
   ChromaticAberration,
   EffectComposer,
-  Outline,
   Scanline,
   ToneMapping,
   Vignette,
 } from "@react-three/postprocessing";
 import { useAtomValue } from "jotai";
-import { BlendFunction, KernelSize, ToneMappingMode } from "postprocessing";
+import { BlendFunction, ToneMappingMode } from "postprocessing";
 import { Fragment } from "react/jsx-runtime";
 import { Vector2 } from "three";
 
 export const Effects = () => {
   const settings = useAtomValue(settingAtom);
-  const outlineSelection = useOutlineSelection();
 
   const effectsToShow = {
     Bloom: {
@@ -28,20 +25,6 @@ export const Effects = () => {
     ToneMapping: {
       enabled: true,
       component: <ToneMapping mode={ToneMappingMode.CINEON} />,
-    },
-    Outline: {
-      enabled: settings.outline,
-      component: (
-        <Outline
-          selection={outlineSelection}
-          edgeStrength={3}
-          pulseSpeed={0.1}
-          visibleEdgeColor={0x00ff00}
-          kernelSize={KernelSize.VERY_SMALL}
-          blur={false}
-          xRay={true}
-        />
-      ),
     },
     Vignette: {
       enabled: settings.vignette,

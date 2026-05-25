@@ -1,11 +1,9 @@
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
 import { FLOOR_THICKNESS, useBall } from "#/lib/hooks/useBall";
-import { registerOutline, unregisterOutline } from "#/lib/outline-selection";
 import { Trail } from "@react-three/drei";
 import { MeshLineGeometry, MeshLineMaterial } from "meshline";
 import { extend } from "@react-three/fiber";
-import { useCallback, useRef } from "react";
-import type { Mesh } from "three";
+import { useRef } from "react";
 import type { MeshLineMaterial as MeshLineMaterialType } from "meshline";
 
 extend({ MeshLineGeometry, MeshLineMaterial });
@@ -13,12 +11,6 @@ extend({ MeshLineGeometry, MeshLineMaterial });
 export function Ball() {
   const { onFloorCollision, ref, floorY } = useBall();
   const trailMat = useRef<MeshLineMaterialType>(null);
-  const meshRef = useCallback((node: Mesh | null) => {
-    if (node) {
-      registerOutline(node);
-      return () => unregisterOutline(node);
-    }
-  }, []);
 
   return (
     <>
@@ -37,7 +29,6 @@ export function Ball() {
           opacity={0.8}
           transparent
           depthWrite={false}
-          // dashArray={0.5}
           dashRatio={0.2}
         />
         <RigidBody
@@ -49,7 +40,7 @@ export function Ball() {
           linearDamping={0}
           lockRotations
         >
-          <mesh ref={meshRef} castShadow receiveShadow>
+          <mesh castShadow receiveShadow>
             <sphereGeometry args={[0.5, 32, 32]} />
             <meshStandardMaterial color="#ffffff" />
           </mesh>

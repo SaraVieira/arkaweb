@@ -1,9 +1,8 @@
 import { useGLTF } from "@react-three/drei";
-import { useCallback, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import type { JSX } from "react/jsx-runtime";
 import { EnemyType } from "#/levels";
-import { registerOutline, unregisterOutline } from "#/lib/outline-selection";
 import type { GLTF } from "three-stdlib";
 
 type GLTFResult = GLTF & {
@@ -53,17 +52,9 @@ export function EnemyModel(
     };
   }, [material]);
 
-  const meshRef = useCallback((node: THREE.Mesh | null) => {
-    if (node) {
-      registerOutline(node);
-      return () => unregisterOutline(node);
-    }
-  }, []);
-
   return (
     <group {...groupProps} dispose={null}>
       <mesh
-        ref={meshRef}
         castShadow
         receiveShadow
         geometry={nodes.Cube.geometry}
