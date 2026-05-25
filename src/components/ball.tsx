@@ -1,10 +1,10 @@
-import { CuboidCollider, RigidBody } from "@react-three/rapier";
-import { FLOOR_THICKNESS, useBall } from "#/lib/hooks/useBall";
 import { Trail } from "@react-three/drei";
-import { MeshLineGeometry, MeshLineMaterial } from "meshline";
 import { extend } from "@react-three/fiber";
-import { useRef } from "react";
+import { CuboidCollider, RigidBody } from "@react-three/rapier";
 import type { MeshLineMaterial as MeshLineMaterialType } from "meshline";
+import { MeshLineGeometry, MeshLineMaterial } from "meshline";
+import { useRef } from "react";
+import { FLOOR_THICKNESS, useBall } from "#/lib/hooks/useBall";
 
 extend({ MeshLineGeometry, MeshLineMaterial });
 
