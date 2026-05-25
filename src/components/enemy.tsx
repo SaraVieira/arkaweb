@@ -4,6 +4,7 @@ import * as THREE from "three";
 import type { EnemyType } from "#/lib/game-store";
 import { EnemyModel } from "#/models/enemy";
 import { useEnemy } from "#/lib/hooks/useEnemy";
+import { PositionalAudio } from "@react-three/drei";
 
 export const Enemy = ({
   position,
@@ -27,19 +28,26 @@ export const Enemy = ({
 
   if (dying) {
     return (
-      <group ref={groupRef} position={position}>
-        <EnemyModel type={type} damage={hitsNeeded} flash={flash} />
-        <points ref={pointsRef} geometry={pointsGeo}>
-          <pointsMaterial
-            size={0.25}
-            color={particleColor}
-            transparent
-            opacity={1}
-            depthWrite={false}
-            blending={THREE.AdditiveBlending}
-          />
-        </points>
-      </group>
+      <>
+        <PositionalAudio
+          url="/459150__lilmati__retro-underwater-explosion.wav"
+          distance={1}
+          autoplay
+        />
+        <group ref={groupRef} position={position}>
+          <EnemyModel type={type} damage={hitsNeeded} flash={flash} />
+          <points ref={pointsRef} geometry={pointsGeo}>
+            <pointsMaterial
+              size={0.25}
+              color={particleColor}
+              transparent
+              opacity={1}
+              depthWrite={false}
+              blending={THREE.AdditiveBlending}
+            />
+          </points>
+        </group>
+      </>
     );
   }
 

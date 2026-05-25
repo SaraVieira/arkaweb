@@ -1,4 +1,4 @@
-import { Environment, Stats } from "@react-three/drei";
+import { Environment, PositionalAudio, Stats } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
 import { createFileRoute } from "@tanstack/react-router";

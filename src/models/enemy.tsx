@@ -55,8 +55,6 @@ export function EnemyModel(
   return (
     <group {...groupProps} dispose={null}>
       <mesh
-        castShadow
-        receiveShadow
         geometry={nodes.Cube.geometry}
         material={material}
         scale={[1.25, 0.5, 0.5]}

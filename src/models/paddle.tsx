@@ -40,21 +40,12 @@ export function PaddleModel({ scaleRef, ...props }: PaddleModelProps) {
   return (
     <group {...props} dispose={null}>
       <group ref={innerRef} scale={[2, 0.5, 0.5]}>
+        <mesh geometry={nodes.Cube001.geometry} material={material} />
         <mesh
-          castShadow
-          receiveShadow
-          geometry={nodes.Cube001.geometry}
-          material={material}
-        />
-        <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.Cube001_1.geometry}
           material={materials["Material.003"]}
         />
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.Cube001_2.geometry}
           material={materials["Material.004"]}
         />
