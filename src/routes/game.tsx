@@ -151,13 +151,33 @@ export const Game = () => {
       </div>
 
       {gameState === GAME_STATE.READY && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-8 text-center text-xl text-white drop-shadow-lg">
-          Press SPACE to launch
-        </div>
+        <Overlay
+          title="Press SPACE to start"
+          type="ready"
+          subtitleComponent={
+            <>
+              <h3 className="bold text-2xl mt-8">How to play</h3>
+              <ul className="text-center">
+                <li>Use left and right arrow keys to move the paddle</li>
+                <li>
+                  Blue bricks only need one hit. Silver bricks need 2 and gold 3
+                  to destroy
+                </li>
+              </ul>
+            </>
+          }
+        />
+        // <div className="pointer-events-none absolute inset-x-0 bottom-8 text-center text-xl text-white drop-shadow-lg">
+        //   Press SPACE to launch
+        // </div>
       )}
 
       {gameState === GAME_STATE.PAUSED && (
-        <Overlay title="PAUSED" subtitle="Press space to resume" />
+        <Overlay
+          title="PAUSED"
+          type="paused"
+          subtitle="Press space to resume"
+        />
       )}
 
       {gameState === GAME_STATE.LEVEL_COMPLETE && (
