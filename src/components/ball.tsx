@@ -1,12 +1,9 @@
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
 import { FLOOR_THICKNESS, useBall } from "#/lib/hooks/useBall";
-import {
-  registerOutline,
-  unregisterOutline,
-} from "#/lib/outline-selection";
+import { registerOutline, unregisterOutline } from "#/lib/outline-selection";
 import { Trail } from "@react-three/drei";
 import { MeshLineGeometry, MeshLineMaterial } from "meshline";
-import { extend, useFrame } from "@react-three/fiber";
+import { extend } from "@react-three/fiber";
 import { useCallback, useRef } from "react";
 import type { Mesh } from "three";
 import type { MeshLineMaterial as MeshLineMaterialType } from "meshline";
@@ -23,17 +20,11 @@ export function Ball() {
     }
   }, []);
 
-  useFrame((_state, delta) => {
-    if (trailMat.current) {
-      trailMat.current.dashOffset -= delta * 1.5;
-    }
-  });
-
   return (
     <>
       <Trail
         width={0.6}
-        length={7}
+        length={2}
         decay={1}
         stride={0.03}
         interval={1}
@@ -46,7 +37,7 @@ export function Ball() {
           opacity={0.8}
           transparent
           depthWrite={false}
-          dashArray={0.5}
+          // dashArray={0.5}
           dashRatio={0.2}
         />
         <RigidBody
