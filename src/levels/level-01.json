@@ -2,17 +2,8 @@
   "id": "level-01",
   "name": "Welcome",
   "grid": [
-    [null, null, null, null, null, null, null, null],
-    [
-      "normal",
-      "normal",
-      "silver",
-      "normal",
-      null,
-      "normal",
-      "normal",
-      "normal"
-    ],
-    ["normal", "normal", "silver", "normal", null, "normal", "normal", "normal"]
+    ["normal", "normal", "normal", "normal", "normal", "normal", "normal", "normal"],
+    ["normal", "normal", "normal", "normal", "normal", "normal", "normal", "normal"],
+    ["normal", "normal", "normal", "normal", "normal", "normal", "normal", "normal"]
   ]
 }

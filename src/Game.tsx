@@ -1,18 +1,16 @@
 import { Environment } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
-import { createFileRoute } from "@tanstack/react-router";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Background } from "#/components/Background";
 import { Ball } from "#/components/ball";
 import { Effects } from "#/components/Effects";
 import { Enemy } from "#/components/enemy";
-import { GameEndOverlay } from "#/components/GameEndOverlay";
 import { Overlay } from "#/components/overlay";
 import { Paddle } from "#/components/paddle";
 import { Walls } from "#/components/walls";
-import { getLevelsFn } from "#/levels/server";
+import { levels as ALL_LEVELS } from "#/levels";
 import {
   advanceLevelAtom,
   currentLevelAtom,
@@ -23,7 +21,6 @@ import {
   levelsAtom,
   livesAtom,
   loadLevelAtom,
-  playDurationAtom,
   resetGameAtom,
   roundAtom,
   scoreAtom,
@@ -41,7 +38,6 @@ export const Game = () => {
   const currentLevel = useAtomValue(currentLevelAtom);
   const [levels, setLevels] = useAtom(levelsAtom);
   const gameStartTime = useAtomValue(gameStartTimeAtom);
-  const playDuration = useAtomValue(playDurationAtom);
   const setGameStartTime = useSetAtom(gameStartTimeAtom);
   const level = levels[currentLevel];
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -63,15 +59,8 @@ export const Game = () => {
   );
 
   useEffect(() => {
-    let cancelled = false;
-    getLevelsFn().then((data) => {
-      if (cancelled) return;
-      setLevels(data);
-      loadLevel();
-    });
-    return () => {
-      cancelled = true;
-    };
+    setLevels(ALL_LEVELS);
+    loadLevel();
   }, [setLevels, loadLevel]);
 
   const handleKeyDown = useCallback(
@@ -99,7 +88,7 @@ export const Game = () => {
       "607942__bloodpixelhero__retro-arcade-music-3.wav",
     );
     audioRef.current.volume = 0.1;
-    audioRef.current.play();
+    audioRef.current.play().catch(() => {});
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
@@ -164,9 +153,6 @@ export const Game = () => {
             </>
           }
         />
-        // <div className="pointer-events-none absolute inset-x-0 bottom-8 text-center text-xl text-white drop-shadow-lg">
-        //   Press SPACE to launch
-        // </div>
       )}
 
       {gameState === GAME_STATE.PAUSED && (
@@ -187,27 +173,22 @@ export const Game = () => {
       )}
 
       {gameState === GAME_STATE.GAME_OVER && (
-        <GameEndOverlay
+        <Overlay
           title="GAME OVER"
-          score={score}
-          duration={playDuration}
-          onPlayAgain={resetGame}
+          subtitle={`Final score: ${score.toLocaleString()}`}
+          actionLabel="Play again"
+          onAction={resetGame}
         />
       )}
 
       {gameState === GAME_STATE.WON && (
-        <GameEndOverlay
+        <Overlay
           title="YOU WIN!"
-          score={score}
-          duration={playDuration}
-          onPlayAgain={resetGame}
+          subtitle={`Final score: ${score.toLocaleString()}`}
+          actionLabel="Play again"
+          onAction={resetGame}
         />
       )}
     </div>
   );
 };
-
-export const Route = createFileRoute("/game")({
-  component: Game,
-  ssr: false,
-});
