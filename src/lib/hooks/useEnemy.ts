@@ -3,10 +3,7 @@ import { destroyEnemyAtom, EnemyType } from "../game-store";
 import { useSetAtom } from "jotai";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
-import type {
-  CollisionEnterHandler,
-  CollisionEnterPayload,
-} from "@react-three/rapier";
+import type { CollisionEnterPayload } from "@react-three/rapier";
 
 const HITS_TO_DESTROY: Record<EnemyType, number> = {
   [EnemyType.Normal]: 1,
@@ -20,7 +17,7 @@ const PARTICLE_COLORS: Record<EnemyType, string> = {
   [EnemyType.Gold]: "#ffd700",
 };
 
-const PARTICLE_COUNT = 8;
+const PARTICLE_COUNT = 12;
 const DEATH_DURATION = 300;
 
 function spawnParticles(): {

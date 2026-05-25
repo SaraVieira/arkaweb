@@ -55,7 +55,7 @@ export const Enemy = ({
           <EnemyModel type={type} damage={hitsNeeded} flash={flash} />
           <points ref={pointsRef} geometry={pointsGeo}>
             <pointsMaterial
-              size={0.25}
+              size={0.8}
               color={particleColor}
               transparent
               opacity={1}
