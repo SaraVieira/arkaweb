@@ -31,44 +31,42 @@ Open `talk-demo` running in a browser tab. Play 20 seconds, die on purpose, show
 
 Switch to `talk-start`, browser shows black screen.
 
-### 1:30–4:00 — Scene & camera (live type, ~30 lines)
-In `App.tsx`: `<Canvas camera={{ position: [0, 5, 24], fov: 50 }}>` + ambientLight + directionalLight + a hardcoded `<mesh><boxGeometry /></mesh>`. Audience sees a grey cube.
+### 1:30–5:00 — Bouncing ball in a box (live type, ~25 lines)
+`walls.tsx` + `useGameBounds.ts` are pre-staged. Open them briefly to show what's inside, then in `App.tsx` type: `<Canvas>` + lights + `<Physics gravity={[0,0,0]}>` + `<Walls />` + an inline `<RigidBody>` (restitution 1, friction 0, lockRotations, `linearVelocity={[6, -8, 0]}`) wrapping a `<sphereGeometry>`.
 
-**Talking point**: R3F is just React components that render Three.js — every JSX tag is a `THREE.Whatever`.
+**The very first visible thing on screen is the ball bouncing forever between the walls.** No cube. No empty Canvas — the ball is the opener.
 
-### 4:00–7:00 — Walls (paste `walls.tsx` + `useGameBounds.ts`, paste `consts.ts` if not present)
-Wrap everything in `<Physics gravity={[0,0,0]}>`. Add `<Walls />`. Cube is now boxed in.
+**Talking points**: R3F is React components rendering Three.js (every tag is a `THREE.Whatever`). Rapier gives colliders as JSX too. Zero gravity because Arkanoid is a 2D game pretending to be 3D. Walls aren't visible — they're just colliders. Add `debug` to `<Physics>` to see them, then remove.
 
-**Talking point**: Rapier gives us colliders as JSX too. Zero gravity because Arkanoid is a 2D game pretending to be 3D.
+### 5:00–9:00 — Paddle as a plain mesh (paste `paddle.tsx` + `usePaddle.ts`)
+Paddle is a `<boxGeometry args={[4, 0.5, 0.5]} />` with a red `meshStandardMaterial` inside the `RigidBody`. No GLB yet — that's a polish swap later. Arrow keys move it; it can now intercept the ball.
 
-### 7:00–11:00 — Paddle (paste `paddle.tsx` + `usePaddle.ts` + `src/models/paddle.tsx`)
-Arrow keys move the paddle.
+**Talking points**: kinematic body vs dynamic, why paddle position is updated outside React in a ref (frame-loop perf), how the paddle deflection works (offset-from-center → exit angle). Live-edit `BALL_SPEED` or paddle width in `consts.ts` to show HMR.
 
-**Talking points**: kinematic body vs dynamic, the GLB import, why position is updated outside React in a ref (frame-loop perf). Live-edit `BALL_SPEED` or paddle width in `consts.ts` to show HMR.
+### 9:00–13:00 — Ball upgrade: Trail + state machine (paste `ball.tsx` + `useBall.ts` + minimal `game-store.ts`)
+Replace the inline `<RigidBody>` from beat 2 with the proper `<Ball />` component: Trail visual, speed-clamp via `useFrame`, `MIN_VY_RATIO` guard, floor-death wired to `GAME_STATE.GAME_OVER`. Introduces a minimal `game-store.ts` with `paddlePositionRef`, `gameStateAtom`, `livesAtom`, `gameStartTimeAtom`, `playDurationAtom`. Game state defaults to `PLAYING` — no overlays yet.
 
-### 11:00–15:30 — Ball (paste `ball.tsx` + `useBall.ts`)
-Ball bounces forever.
+**The crucial moment**: explain `restitution: 1` + `MIN_VY_RATIO`. Live-edit the ratio to `0` → ball goes purely horizontal forever → restore to `0.25` → *"this is the only line of code that prevents the game from being broken."*
 
-**The crucial moment**: explain `restitution: 1` + `MIN_VY_RATIO`. Live-edit the ratio to 0 → ball goes horizontal forever → reset to 0.25 → "this is the only line of code that prevents the game from being broken."
-
-### 15:30–19:00 — Bricks (paste `enemy.tsx` + `useEnemy.ts` + `useParticles.ts` + `models/enemy.tsx` + `game-store.ts`)
+### 13:00–17:30 — Bricks (paste `enemy.tsx` + `useEnemy.ts` + `useParticles.ts` + `models/enemy.tsx`, replace `game-store.ts` with full)
 Open `level-01.json` in the side pane.
 
 > "This JSON is the level."
 
-Game.tsx already iterates `enemiesAtom`, so once `game-store` is pasted, bricks appear. Hit one — it explodes with particles.
+Full `game-store.ts` now has `enemiesAtom`, `loadLevelAtom`, `destroyEnemyAtom`. App.tsx adds a `useEffect` to load level + a `useMemo` mapping enemies to `<Enemy />`. Hit one — it explodes with particles.
 
 **Talking points**: Jotai as a state-machine layer separate from R3F, hits-to-destroy lookup table, why dying bricks switch from RigidBody to plain `<group>`.
 
-### 19:00–21:30 — HUD + overlays (paste `overlay.tsx` + the HUD div + game-over wiring)
-Score updates, lives count down, GAME OVER appears. Game is playable end-to-end.
+### 17:30–20:30 — HUD + overlays (paste `overlay.tsx` + HUD div + space-to-start wiring)
+Score updates, lives count down. SPACE launches from READY. GAME OVER and YOU WIN overlays appear. Game is playable end-to-end.
 
-### 21:30–23:30 — The polish reveal (3 pastes, big visual jumps)
+### 20:30–23:30 — The polish reveal (4 pastes, big visual jumps)
 1. Add `<Environment files="/venice_sunset_2k.exr" />` → suddenly everything reflects sunset lighting.
 2. Paste `Effects.tsx` and drop it in → bloom + chromatic aberration + scanlines kick in.
-3. Paste `Background.tsx` → the starfield/space background appears.
+3. Paste `Background.tsx` → the dark teal grid background appears.
+4. **Swap the paddle mesh for the GLB**: paste `src/models/paddle.tsx`, change `<mesh><boxGeometry /></mesh>` in `paddle.tsx` to `<PaddleModel scaleRef={paddleScaleX} />`. Paddle goes from a red box to a proper 3D model.
 
-Three pastes, three "ohh" moments. This is the showstopper.
+Four pastes, four "ohh" moments. This is the showstopper.
 
 ### 23:30–25:00 — "And here's where it goes"
 Open `talk-demo` in another tab. Show:
@@ -81,11 +79,11 @@ Open `talk-demo` in another tab. Show:
 
 - **`talk-demo` is one terminal away**: if any paste blows up at minute 14, switch tabs and demo the finished version while you fix off-screen. The audience never knows.
 - **HMR breakage with Rapier**: if collisions go weird mid-talk, hit reload — don't debug live.
-- **Git checkpoints**: commit after each beat in `talk-start` so `git reset --hard HEAD` recovers if you mistype during the live edits in beats 4 and 11.
-- **Cut order if behind**: skip the Background paste (23:00), then the particles in `useParticles` (you can paste a stub that just removes bricks without explosion), then the Effects.
+- **Git checkpoints**: commit after each beat in `talk-start` so `git reset --hard HEAD` recovers if you mistype during the live edits (beat 2 type + beat 4 MIN_VY_RATIO).
+- **Cut order if behind**: skip the GLB paddle swap, then the Background paste, then the particles in `useParticles` (paste a stub that just removes bricks without explosion), then the Effects.
 
 ## Risks
 
-- **25 min is tight for 8 pastes.** Time yourself in rehearsal — first run will go 35–40min, you'll need to trim banter.
-- **Beat 11 (the ball) is the hard one.** Two files, the deflection math, the floor-collider. Rehearse this twice as much as the others.
+- **Beat 2 is typed live.** Practice the ~25 lines until your fingers know them. If you blank, paste from SNIPPETS.md.
+- **Beat 4 (ball upgrade) is the hard one.** useBall hook, ball.tsx, minimal game-store paste in one beat. The `MIN_VY_RATIO` live-edit is the highlight — don't skip it.
 - **The polish reveal carries the talk.** If you have to cut for time, cut earlier beats — never this one.
