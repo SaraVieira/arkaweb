@@ -1,4 +1,4 @@
-import { RigidBody, type CollisionEnterPayload } from "@react-three/rapier";
+import { RapierRigidBody, RigidBody } from "@react-three/rapier";
 import { usePaddle } from "#/lib/hooks/usePaddle";
 import { PaddleModel } from "#/models/paddle";
 import { useEffect, useRef } from "react";
@@ -12,7 +12,7 @@ export function Paddle() {
     audioRef.current.volume = 0.5;
   }, []);
 
-  const onHit = (handler: CollisionEnterPayload) => {
+  const onHit = (handler: { other: { rigidBody?: RapierRigidBody } }) => {
     const a = audioRef.current;
     if (a) {
       a.currentTime = 0;
