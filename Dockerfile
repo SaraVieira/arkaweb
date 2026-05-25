@@ -1,8 +1,5 @@
 FROM node:24-bookworm-slim AS base
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 make g++ ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
-RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
+RUN corepack enable && corepack prepare pnpm@10.33.3 --activate
 WORKDIR /app
 
 FROM base AS deps
@@ -14,14 +11,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm run build
 
-FROM base AS runtime
-ENV NODE_ENV=production
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/.output ./.output
-COPY --from=build /app/drizzle ./drizzle
-COPY --from=build /app/src/db ./src/db
-COPY --from=build /app/drizzle.config.ts ./drizzle.config.ts
-COPY --from=build /app/package.json ./package.json
-COPY --from=build /app/tsconfig.json ./tsconfig.json
-EXPOSE 3000
-CMD ["sh", "-c", "pnpm drizzle-kit migrate && node .output/server/index.mjs"]
+FROM nginx:1.27-alpine AS runtime
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
