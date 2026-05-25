@@ -1,4 +1,4 @@
-import { Environment } from "@react-three/drei";
+import { Environment, Stats } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
 import { createFileRoute } from "@tanstack/react-router";
@@ -108,6 +108,7 @@ export const Game = () => {
   return (
     <div className="relative h-screen w-screen overflow-hidden">
       <Canvas shadows camera={{ position: [0, 5, 24], fov: 50 }}>
+        <Stats />
         <Background />
         <Environment files={["/venice_sunset_2k.exr"]} />
         <ambientLight intensity={0.2} />
