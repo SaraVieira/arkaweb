@@ -1,9 +1,14 @@
-import { Environment, Stats } from "@react-three/drei";
+import {
+  Environment,
+  PositionalAudio,
+  Sparkles,
+  Stats,
+} from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
 import { createFileRoute } from "@tanstack/react-router";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Background } from "#/components/Background";
 import { Ball } from "#/components/ball";
 import { Effects } from "#/components/Effects";
@@ -44,6 +49,7 @@ export const Game = () => {
   const playDuration = useAtomValue(playDurationAtom);
   const setGameStartTime = useSetAtom(gameStartTimeAtom);
   const level = levels[currentLevel];
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const enemyElements = useMemo(
     () =>
@@ -94,6 +100,11 @@ export const Game = () => {
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
+    audioRef.current = new Audio(
+      "607942__bloodpixelhero__retro-arcade-music-3.wav",
+    );
+    audioRef.current.volume = 0.1;
+    audioRef.current.play();
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
@@ -108,7 +119,6 @@ export const Game = () => {
   return (
     <div className="relative h-screen w-screen overflow-hidden">
       <Canvas camera={{ position: [0, 5, 24], fov: 50 }} dpr={[1, 1.5]}>
-        <Stats />
         <Background />
         <Environment files={["/venice_sunset_2k.exr"]} />
         <ambientLight intensity={0.2} />

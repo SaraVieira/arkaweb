@@ -3,6 +3,10 @@ import { destroyEnemyAtom, EnemyType } from "../game-store";
 import { useSetAtom } from "jotai";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
+import type {
+  CollisionEnterHandler,
+  CollisionEnterPayload,
+} from "@react-three/rapier";
 
 const HITS_TO_DESTROY: Record<EnemyType, number> = {
   [EnemyType.Normal]: 1,
@@ -52,13 +56,7 @@ export const useEnemy = ({ type, id }: { type: EnemyType; id: string }) => {
   const particleColor = PARTICLE_COLORS[type];
 
   const handleCollision = useCallback(
-    ({
-      other,
-    }: {
-      other: {
-        rigidBody?: { linvel: () => { x: number; y: number; z: number } };
-      };
-    }) => {
+    ({ other }: CollisionEnterPayload) => {
       const now = performance.now();
       if (now - lastCollisionTime.current < 50) return;
       lastCollisionTime.current = now;

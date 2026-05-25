@@ -1,10 +1,13 @@
-import type { RigidBodyOptions } from "@react-three/rapier";
+import type {
+  CollisionEnterPayload,
+  RigidBodyOptions,
+} from "@react-three/rapier";
 import { RigidBody } from "@react-three/rapier";
 import * as THREE from "three";
-import type { EnemyType } from "#/lib/game-store";
+import { EnemyType } from "#/lib/game-store";
 import { EnemyModel } from "#/models/enemy";
 import { useEnemy } from "#/lib/hooks/useEnemy";
-import { PositionalAudio } from "@react-three/drei";
+import { useEffect, useRef } from "react";
 
 export const Enemy = ({
   position,
@@ -25,15 +28,29 @@ export const Enemy = ({
     hitsNeeded,
     pointsRef,
   } = useEnemy({ id, type });
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const url =
+      type === EnemyType.Normal
+        ? "/459150__lilmati__retro-underwater-explosion.wav"
+        : "/446127__justinvoke__metal-clank-5.wav";
+    audioRef.current = new Audio(url);
+    audioRef.current.volume = 0.5;
+  }, [type]);
+
+  const onHit = (handler: CollisionEnterPayload) => {
+    const a = audioRef.current;
+    if (a) {
+      a.currentTime = 0;
+      a.play();
+    }
+    handleCollision(handler);
+  };
 
   if (dying) {
     return (
       <>
-        <PositionalAudio
-          url="/459150__lilmati__retro-underwater-explosion.wav"
-          distance={1}
-          autoplay
-        />
         <group ref={groupRef} position={position}>
           <EnemyModel type={type} damage={hitsNeeded} flash={flash} />
           <points ref={pointsRef} geometry={pointsGeo}>
@@ -57,9 +74,8 @@ export const Enemy = ({
       type="fixed"
       position={position}
       restitution={1}
-      onCollisionEnter={handleCollision}
+      onCollisionEnter={onHit}
     >
-      <PositionalAudio url="/459150__lilmati__retro-underwater-explosion.wav" />
       <EnemyModel type={type} flash={flash} />
     </RigidBody>
   );
