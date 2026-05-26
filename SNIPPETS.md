@@ -1,10 +1,4 @@
-# Arkanoid talk — paste snippets
-
-Open in a side editor. Each beat below is a paste/edit step. Pre-staged files (`walls.tsx`, `useGameBounds.ts`, `consts.ts`, `overlay.tsx`, `Effects.tsx`, `Background.tsx`, `models/paddle.tsx`, `levels/*`) already have content — just open them to read or `import` them. Everything else is empty until the talk pastes into it.
-
----
-
-## Beat 3 (1:00–1:30) — Add lights
+## Add lights
 
 Type two lines inside `<Canvas>`:
 
@@ -15,7 +9,7 @@ Type two lines inside `<Canvas>`:
 
 ---
 
-## Beat 4 (1:30–2:30) — Add a ball
+## Add a ball
 
 ```tsx
 <mesh>
@@ -26,7 +20,7 @@ Type two lines inside `<Canvas>`:
 
 ---
 
-## Beat 5 (2:30–5:00) — Make it bounce
+## Make it bounce
 
 ```tsx
 <Physics gravity={[0, 0, 0]}>
@@ -48,7 +42,7 @@ Type two lines inside `<Canvas>`:
 
 ---
 
-## Beat 6 (5:00–7:30) — The paddle (mesh + arrows in one shot)
+## The paddle (mesh + arrows in one shot)
 
 ```ts
 import { useFrame } from "@react-three/fiber";
@@ -100,8 +94,6 @@ export function usePaddle() {
 }
 ```
 
-Open the empty `src/components/paddle.tsx`, paste:
-
 ```tsx
 import { RigidBody } from "@react-three/rapier";
 import { usePaddle } from "#/lib/hooks/usePaddle";
@@ -121,7 +113,7 @@ export function Paddle() {
 
 ---
 
-## Beat 7 (7:30–9:30) — Make the paddle deflect the ball
+## Make the paddle deflect the ball
 
 ```ts
 const onCollisionEnter = ({
@@ -154,7 +146,7 @@ const { ref, onCollisionEnter } = usePaddle();
 >
 ```
 
-## Beat 8 (9:30–10:30) — Ball: add a Trail
+## Ball: add a Trail
 
 Pure visual beat. Wrap the inline ball in drei's `<Trail>` to leave a cyan streak behind it. No hook, no math.
 
@@ -215,11 +207,9 @@ export function App() {
 
 ---
 
-## Beat 9 (10:30–14:00) — Bricks (built in 3 small steps)
+## Bricks (built in 3 small steps)
 
-One level lives at `src/levels/level-01.json`. We render it as a wall, add color, then add destruction. No hit-count logic, no particles, no death animation — those live in `talk-demo`.
-
-### 9a (10:30–11:30) — Render bricks from the JSON
+### Render bricks from the JSON
 
 Open the empty `src/components/enemy.tsx`, paste:
 
@@ -242,8 +232,6 @@ export function Enemy({ position }: { position: [number, number, number] }) {
   );
 }
 ```
-
-Edit `src/App.tsx` — import the level, expand the grid into positions, render `<Enemy>` per cell:
 
 ```ts
     levels[0].grid.flatMap((row, r) =>
@@ -271,11 +259,7 @@ Edit `src/App.tsx` — import the level, expand the grid into positions, render 
 }
 ```
 
-### 9b (11:30–12:00) — Color by type
-
-Every brick is white but the JSON has `"normal"`, `"silver"`, `"gold"` types. Map them to colors.
-
-Replace `src/components/enemy.tsx`:
+### Color by type
 
 ```ts
 const COLOR: Record<EnemyType, string> = {
@@ -284,8 +268,6 @@ const COLOR: Record<EnemyType, string> = {
   gold: "gold",
 };
 ```
-
-Edit `src/App.tsx` — pass `type` from each grid cell and pass it to `<Enemy>`:
 
 ```tsx
 const bricks = useMemo(
@@ -311,7 +293,7 @@ const bricks = useMemo(
 );
 ```
 
-### 9c (12:00–14:00) — Destroy on hit
+### Destroy on hit
 
 ```ts
 import { atom } from "jotai";
@@ -403,7 +385,7 @@ export function Enemy({
 }
 ```
 
-## Beat 10 (14:00–16:00) — State machine wiring
+## State machine wiring
 
 ```ts
 import { atom } from "jotai";
@@ -471,12 +453,6 @@ export const resetGameAtom = atom(null, (_get, set) => {
 });
 ```
 
-`buildEnemies` is unchanged from beat 9c — we just made the file grow around it with the state machine, lives, and `WON` detection. `destroyEnemyAtom` keeps its `(id: string)` signature, so no Enemy change needed.
-
-`resetGameAtom` calls `buildEnemies()` again on "play again" — that's why the helper had to be a function and not just inlined into the atom initializer.
-
-**Edit `src/lib/hooks/usePaddle.ts`** — publish the paddle's x position to a ref the ball can read. Add the import and one line in the existing `useFrame`:
-
 ```ts
 // add this import at the top
 import { paddlePositionRef } from "../game-store";
@@ -496,7 +472,7 @@ useFrame((_, delta) => {
 });
 ```
 
-**Paste → `src/lib/hooks/useBall.ts`** (first time this hook exists):
+`src/lib/hooks/useBall.ts`
 
 ```ts
 import { useFrame } from "@react-three/fiber";
@@ -578,7 +554,7 @@ export const useBall = () => {
 };
 ```
 
-**Replace `src/components/ball.tsx`** — wire in the floor collider:
+`src/components/ball.tsx`
 
 ```tsx
 <RigidBody
@@ -592,7 +568,7 @@ onCollisionEnter={onFloorCollision}
 
 ```
 
-## Beat 11 (16:00–18:00) — HUD + overlays
+## HUD + overlays
 
 ```tsx
 import { Canvas } from "@react-three/fiber";
@@ -683,9 +659,9 @@ export function App() {
 }
 ```
 
-## Beat 12 (18:00–21:00) — Polish (four pastes, four "oohs")
+## Polish (four pastes, four "oohs")
 
-### 12a. HDRI lighting
+### HDRI lighting
 
 ```tsx
 // add to imports
@@ -695,7 +671,7 @@ import { Environment } from "@react-three/drei";
 <Environment files={["/venice_sunset_2k.exr"]} />;
 ```
 
-### 12b. Postprocessing
+### Postprocessing
 
 ```tsx
 // add to imports
@@ -705,7 +681,7 @@ import { Effects } from "#/components/Effects";
 <Effects />;
 ```
 
-### 12c. Background
+### Background
 
 `src/components/Background.tsx` is **pre-staged** — a dark-teal plane + a green grid behind the play area. Wire it in:
 
@@ -716,7 +692,7 @@ import { Background } from "#/components/Background";
 <Background />;
 ```
 
-### 12d. Swap the paddle box for the GLB
+### Swap the paddle box for the GLB
 
 ```tsx
 // add to imports
