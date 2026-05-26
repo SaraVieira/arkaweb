@@ -2,8 +2,35 @@
   "id": "level-01",
   "name": "Welcome",
   "grid": [
-    ["normal", "normal", "normal", "normal", "normal", "normal", "normal", "normal"],
-    ["normal", "normal", "normal", "normal", "normal", "normal", "normal", "normal"],
-    ["normal", "normal", "normal", "normal", "normal", "normal", "normal", "normal"]
+    [
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal"
+    ],
+    [
+      "normal",
+      "normal",
+      "silver",
+      "silver",
+      "silver",
+      "normal",
+      "normal",
+      "normal"
+    ],
+    [
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal"
+    ]
   ]
 }

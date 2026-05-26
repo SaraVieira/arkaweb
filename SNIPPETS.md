@@ -51,7 +51,6 @@ import { useEffect, useRef } from "react";
 import { useGameBounds } from "./useGameBounds";
 
 const PADDLE_HALF_WIDTH = 2;
-const PADDLE_BOTTOM_OFFSET = 8;
 const SPEED = 24;
 
 export function usePaddle() {
@@ -101,7 +100,13 @@ import { usePaddle } from "#/lib/hooks/usePaddle";
 export function Paddle() {
   const { ref } = usePaddle();
   return (
-    <RigidBody ref={ref} colliders="cuboid" type="kinematicPosition">
+    <RigidBody
+      ref={ref}
+      colliders="cuboid"
+      type="kinematicPosition"
+      restitution={1}
+      friction={0}
+    >
       <mesh>
         <boxGeometry args={[4, 0.5, 0.5]} />
         <meshStandardMaterial color="red" />
@@ -124,7 +129,7 @@ const onCollisionEnter = ({
   const ball = other.rigidBody;
   if (!ball) return;
   const offset = (ball.translation().x - x.current) / PADDLE_HALF_WIDTH;
-  const clamped = Math.max(-0.5, Math.min(0.5, offset));
+  const clamped = Math.max(-0.9, Math.min(0.9, offset));
   const angle = clamped * PADDLE_MAX_ANGLE;
   ball.setLinvel(
     { x: Math.sin(angle) * BALL_SPEED, y: Math.cos(angle) * BALL_SPEED, z: 0 },
@@ -142,6 +147,8 @@ const { ref, onCollisionEnter } = usePaddle();
   ref={ref}
   colliders="cuboid"
   type="kinematicPosition"
+  restitution={1}
+  friction={0}
   onCollisionEnter={onCollisionEnter}
 >
 ```
@@ -167,7 +174,14 @@ export function Ball() {
         opacity={0.8}
         transparent
         depthWrite={false}
+      />
+      <RigidBody
+        colliders="ball"
+        restitution={1}
+        friction={0}
         linearVelocity={[12, 16, 0]}
+        lockRotations
+        ccd
       >
         <mesh>
           <sphereGeometry args={[0.5]} />
@@ -175,32 +189,6 @@ export function Ball() {
         </mesh>
       </RigidBody>
     </Trail>
-  );
-}
-```
-
-Edit `src/App.tsx` — replace the inline `<RigidBody>...<sphereGeometry>...</RigidBody>` with `<Ball />` (and drop the `RigidBody` import):
-
-```tsx
-import { Canvas } from "@react-three/fiber";
-import { Physics } from "@react-three/rapier";
-import { Ball } from "#/components/ball";
-import { Paddle } from "#/components/paddle";
-import { Walls } from "#/components/walls";
-
-export function App() {
-  return (
-    <div className="relative h-screen w-screen overflow-hidden">
-      <Canvas camera={{ position: [0, 5, 24], fov: 50 }}>
-        <ambientLight intensity={0.2} />
-        <directionalLight position={[10, 15, 8]} intensity={2} />
-        <Physics gravity={[0, 0, 0]}>
-          <Walls />
-          <Paddle />
-          <Ball />
-        </Physics>
-      </Canvas>
-    </div>
   );
 }
 ```
@@ -479,7 +467,7 @@ import { useFrame } from "@react-three/fiber";
 import type { RapierRigidBody } from "@react-three/rapier";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useRef } from "react";
-import { BALL_SPEED } from "../consts";
+import { BALL_SPEED, PADDLE_BOTTOM_OFFSET } from "../consts";
 import {
   GAME_STATE,
   gameStateAtom,
@@ -488,7 +476,6 @@ import {
 } from "../game-store";
 import { useGameBounds } from "./useGameBounds";
 
-export const PADDLE_BOTTOM_OFFSET = 1;
 export const BALL_SPAWN_OFFSET_Y = 1.5;
 export const FLOOR_THICKNESS = 1;
 
@@ -500,6 +487,7 @@ export const useBall = () => {
   const setGameState = useSetAtom(gameStateAtom);
   const bounds = useGameBounds();
   const paddleY = bounds.bottom + PADDLE_BOTTOM_OFFSET;
+  const floorY = bounds.bottom - FLOOR_THICKNESS;
 
   useEffect(() => {
     livesRef.current = lives;
@@ -558,14 +546,13 @@ export const useBall = () => {
 
 ```tsx
 <RigidBody
-type="fixed"
-colliders={false}
-position={[0, floorY, 0]}
-onCollisionEnter={onFloorCollision}
-
+  type="fixed"
+  colliders={false}
+  position={[0, floorY, 0]}
+  onCollisionEnter={onFloorCollision}
+>
   <CuboidCollider args={[30, FLOOR_THICKNESS, 30]} />
 </RigidBody>
-
 ```
 
 ## HUD + overlays
@@ -605,6 +592,8 @@ export function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== " ") return;
+      e.preventDefault();
+      if (gameState === GAME_STATE.READY) setGameState(GAME_STATE.PLAYING);
       else if (gameState === GAME_STATE.PLAYING)
         setGameState(GAME_STATE.PAUSED);
       else if (gameState === GAME_STATE.PAUSED)
@@ -632,8 +621,10 @@ export function App() {
         </Physics>
       </Canvas>
 
-      <div className="pointer-events-none absolute top-4 right-4 text-xl text-white drop-shadow-lg">
+      <div className="fixed top-0 left-0 w-screen h-screen text-xl text-white drop-shadow-lg">
         Lives: {lives}
+      </div>
+
       {gameState === GAME_STATE.READY && (
         <Overlay title="Press SPACE to start" />
       )}

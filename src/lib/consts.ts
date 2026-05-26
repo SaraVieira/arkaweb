@@ -2,6 +2,8 @@
 export const BALL_SPEED = 20;
 // Max paddle deflection angle from vertical, in radians (~65°).
 export const PADDLE_MAX_ANGLE = 1.15;
+// How far above the bottom wall the paddle sits. Read by usePaddle (positioning) and useBall (knows where the ball spawns).
+export const PADDLE_BOTTOM_OFFSET = 8;
 
 const COLS = 8;
 export const CELL_WIDTH = 3;
