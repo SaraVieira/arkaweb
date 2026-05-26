@@ -51,7 +51,7 @@ import { useEffect, useRef } from "react";
 import { useGameBounds } from "./useGameBounds";
 
 const PADDLE_HALF_WIDTH = 2;
-const PADDLE_BOTTOM_OFFSET = 1.5;
+const PADDLE_BOTTOM_OFFSET = 8;
 const SPEED = 24;
 
 export function usePaddle() {
