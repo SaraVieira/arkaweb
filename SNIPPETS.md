@@ -44,11 +44,33 @@ Type two lines inside `<Canvas>`:
 
 ## The paddle (mesh + arrows in one shot)
 
+```tsx
+import { RigidBody } from "@react-three/rapier";
+import { usePaddle } from "#/lib/hooks/usePaddle";
+
+export function Paddle() {
+  return (
+    <RigidBody
+      colliders="cuboid"
+      type="kinematicPosition"
+      restitution={1}
+      friction={0}
+    >
+      <mesh>
+        <boxGeometry args={[4, 0.5, 0.5]} />
+        <meshStandardMaterial color="red" />
+      </mesh>
+    </RigidBody>
+  );
+}
+```
+
 ```ts
 import { useFrame } from "@react-three/fiber";
 import type { RapierRigidBody } from "@react-three/rapier";
 import { useEffect, useRef } from "react";
 import { useGameBounds } from "./useGameBounds";
+import { PADDLE_BOTTOM_OFFSET } from "../consts";
 
 const PADDLE_HALF_WIDTH = 2;
 const SPEED = 24;
@@ -93,39 +115,12 @@ export function usePaddle() {
 }
 ```
 
-```tsx
-import { RigidBody } from "@react-three/rapier";
-import { usePaddle } from "#/lib/hooks/usePaddle";
-
-export function Paddle() {
-  const { ref } = usePaddle();
-  return (
-    <RigidBody
-      ref={ref}
-      colliders="cuboid"
-      type="kinematicPosition"
-      restitution={1}
-      friction={0}
-    >
-      <mesh>
-        <boxGeometry args={[4, 0.5, 0.5]} />
-        <meshStandardMaterial color="red" />
-      </mesh>
-    </RigidBody>
-  );
-}
-```
-
 ---
 
 ## Make the paddle deflect the ball
 
 ```ts
-const onCollisionEnter = ({
-  other,
-}: {
-  other: { rigidBody?: RapierRigidBody };
-}) => {
+const onCollisionEnter = ({ other }: CollisionEnterPayload) => {
   const ball = other.rigidBody;
   if (!ball) return;
   const offset = (ball.translation().x - x.current) / PADDLE_HALF_WIDTH;
@@ -138,26 +133,7 @@ const onCollisionEnter = ({
 };
 ```
 
-Edit `src/components/paddle.tsx` — wire it up:
-
-```tsx
-const { ref, onCollisionEnter } = usePaddle();
-// ...
-<RigidBody
-  ref={ref}
-  colliders="cuboid"
-  type="kinematicPosition"
-  restitution={1}
-  friction={0}
-  onCollisionEnter={onCollisionEnter}
->
-```
-
 ## Ball: add a Trail
-
-Pure visual beat. Wrap the inline ball in drei's `<Trail>` to leave a cyan streak behind it. No hook, no math.
-
-Open the empty `src/components/ball.tsx`, paste:
 
 ```tsx
 import { Trail } from "@react-three/drei";
@@ -206,12 +182,7 @@ import { RigidBody } from "@react-three/rapier";
 
 export function Enemy({ position }: { position: [number, number, number] }) {
   return (
-    <RigidBody
-      type="fixed"
-      colliders="cuboid"
-      position={position}
-      restitution={1}
-    >
+    <RigidBody type="fixed" position={position} restitution={1}>
       <mesh>
         <boxGeometry args={[2.5, 1, 1]} />
         <meshStandardMaterial color="white" />
@@ -508,7 +479,6 @@ export const useBall = () => {
     body.setLinvel({ x: 0, y: 0, z: 0 }, true);
   });
 
-  // When SPACE flips us into PLAYING, kick the ball off at a random small angle.
   useEffect(() => {
     if (gameState !== GAME_STATE.PLAYING) return;
     const body = ref.current;
