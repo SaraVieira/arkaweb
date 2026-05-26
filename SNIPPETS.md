@@ -1,17 +1,21 @@
+# Arkanoid talk — paste snippets
+
+Open in a side editor. Each beat below is a paste/edit step. Pre-staged files (`walls.tsx`, `useGameBounds.ts`, `consts.ts`, `overlay.tsx`, `Effects.tsx`, `Background.tsx`, `models/paddle.tsx`, `levels/*`) already have content — just open them to read or `import` them. Everything else is empty until the talk pastes into it.
+
+---
+
+## Beat 3 (1:00–1:30) — Add lights
+
+Type two lines inside `<Canvas>`:
+
 ```tsx
 <ambientLight intensity={0.2} />
 <directionalLight position={[10, 15, 8]} intensity={2} />
 ```
 
-✅ Still black — lights with nothing to illuminate are invisible.
-
-**Talking point**: R3F is React rendering Three.js — every JSX tag becomes `new THREE.Whatever()`.
-
 ---
 
 ## Beat 4 (1:30–2:30) — Add a ball
-
-Add a sphere mesh after the lights:
 
 ```tsx
 <mesh>
@@ -20,62 +24,31 @@ Add a sphere mesh after the lights:
 </mesh>
 ```
 
-✅ White sphere at origin, static. The directional light now bounces off it.
-
 ---
 
 ## Beat 5 (2:30–5:00) — Make it bounce
 
-`src/components/walls.tsx` + `src/lib/hooks/useGameBounds.ts` are pre-staged. Open them briefly to show: three `<RigidBody><CuboidCollider />` blocks (left/right/ceiling — no floor) plus a viewport-bounds hook.
-
-Then in `App.tsx`:
-
-1. Import `Physics`, `RigidBody`, `Walls`.
-2. Wrap the lights + ball in `<Physics gravity={[0, 0, 0]}>`.
-3. Add `<Walls />` inside Physics.
-4. Wrap the ball `<mesh>` in a `<RigidBody>` with the four physics knobs + initial velocity.
-
 ```tsx
-import { Canvas } from "@react-three/fiber";
-import { Physics, RigidBody } from "@react-three/rapier";
-import { Walls } from "#/components/walls";
-
-export function App() {
-  return (
-    <div className="relative h-screen w-screen overflow-hidden">
-      <Canvas camera={{ position: [0, 5, 24], fov: 50 }}>
-        <ambientLight intensity={0.2} />
-        <directionalLight position={[10, 15, 8]} intensity={2} />
-        <Physics gravity={[0, 0, 0]}>
-          <Walls />
-          <RigidBody
-            colliders="ball"
-            restitution={1}
-            friction={0}
-            lockRotations
-            linearVelocity={[12, 16, 0]}
-          >
-            <mesh>
-              <sphereGeometry args={[0.5]} />
-              <meshStandardMaterial color="white" />
-            </mesh>
-          </RigidBody>
-        </Physics>
-      </Canvas>
-    </div>
-  );
-}
+<Physics gravity={[0, 0, 0]}>
+  <Walls />
+  <RigidBody
+    colliders="ball"
+    restitution={1}
+    friction={0}
+    lockRotations
+    linearVelocity={[12, 16, 0]}
+  >
+    <mesh>
+      <sphereGeometry args={[0.5]} />
+      <meshStandardMaterial color="white" />
+    </mesh>
+  </RigidBody>
+</Physics>
 ```
-
-✅ Ball bounces between left/right/ceiling. After a few bounces it drifts past the open bottom and escapes — _"we need to catch this thing."_
-
-**Talking points**: `restitution: 1` = perfectly elastic (no energy loss). `friction: 0` = no drag. Zero gravity because arkanoid is 2D pretending to be 3D. Walls are colliders, not visible — toggle `<Physics debug>` to see them, then remove.
 
 ---
 
 ## Beat 6 (5:00–7:30) — The paddle (mesh + arrows in one shot)
-
-Open the empty `src/lib/hooks/usePaddle.ts`, paste the minimal version (~30 lines — keys + frame-loop movement):
 
 ```ts
 import { useFrame } from "@react-three/fiber";
@@ -146,19 +119,9 @@ export function Paddle() {
 }
 ```
 
-In `App.tsx`, import `Paddle` and drop `<Paddle />` inside `<Physics>` after `<Walls />`.
-
-✅ Red paddle, arrow keys move it. Ball bounces off it (at the angle it came in — fixed in the next beat).
-
-**Talking points**: `kinematicPosition` = we set position via code, physics doesn't push it around. `dynamic` would fall away when hit. Position updated in `useFrame` (every frame), not React state — keeps the render loop out of React's reconciliation.
-
 ---
 
 ## Beat 7 (7:30–9:30) — Make the paddle deflect the ball
-
-This is the "huh" insight. Right now ball bounces off paddle at whatever angle it came in. In real arkanoid, **where** you hit the paddle changes the exit angle — that's the whole game.
-
-Add to `src/lib/hooks/usePaddle.ts` (above the `useEffect`):
 
 ```ts
 const onCollisionEnter = ({
@@ -190,10 +153,6 @@ const { ref, onCollisionEnter } = usePaddle();
   onCollisionEnter={onCollisionEnter}
 >
 ```
-
-✅ Hit the ball near the paddle's left edge → it flies up-left. Hit near the right → up-right. Hit dead center → straight up. **This is what makes it a game.**
-
-**Talking points**: offset normalized to `[-1, 1]`, clamped to `[-0.5, 0.5]` to avoid extreme angles, multiplied by `PADDLE_MAX_ANGLE` (~65°). The new velocity is computed from that angle, magnitude preserved at `BALL_SPEED`. Open `src/lib/consts.ts` and live-edit `PADDLE_MAX_ANGLE` to `2.5` (pre-decided — don't take audience suggestions, higher values can tunnel through walls) to show the ball flying near-horizontally — _"this number is the difference between fun and broken."_ Restore to `1.15`.
 
 ## Beat 8 (9:30–10:30) — Ball: add a Trail
 
@@ -230,7 +189,7 @@ export function Ball() {
 
 Edit `src/App.tsx` — replace the inline `<RigidBody>...<sphereGeometry>...</RigidBody>` with `<Ball />` (and drop the `RigidBody` import):
 
-````tsx
+```tsx
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
 import { Ball } from "#/components/ball";
@@ -252,9 +211,7 @@ export function App() {
     </div>
   );
 }
-✅ Ball trails a cyan line behind it as it bounces.
-
-**Talking point**: `<Trail>` is from `@react-three/drei` — drei is the helper library on top of R3F that gives you common scene utilities like Trail, OrbitControls, Environment, Text, useGLTF. We'll use more drei stuff in the polish reveal.
+```
 
 ---
 
@@ -284,10 +241,11 @@ export function Enemy({ position }: { position: [number, number, number] }) {
     </RigidBody>
   );
 }
-````
+```
 
 Edit `src/App.tsx` — import the level, expand the grid into positions, render `<Enemy>` per cell:
 
+```ts
     levels[0].grid.flatMap((row, r) =>
       row.flatMap((type, c) =>
         type
@@ -304,28 +262,30 @@ Edit `src/App.tsx` — import the level, expand the grid into positions, render 
           : [],
       ),
     ),
-
-````
+```
 
 ```tsx
 // inside <Physics>, after <Ball />:
 {
-  bricks.map((b) => <Enemy key={b.id} position={b.position} />);
+  bricks.map((b) => <Enemy key={b.id} {...b} />);
 }
-````
-
-✅ 24 white bricks in a grid. Ball bounces off them. They can't be destroyed yet.
-
-**Talking point**: Open `level-01.json` in a side pane. _"The whole layout is one JSON file. Three rows × eight columns. That's what we just walked."_
+```
 
 ### 9b (11:30–12:00) — Color by type
 
 Every brick is white but the JSON has `"normal"`, `"silver"`, `"gold"` types. Map them to colors.
 
-Edit `src/components/enemy.tsx`:
+Replace `src/components/enemy.tsx`:
 
-normal: "#18c9ff",
-silver: "#c0c0c0",
+```ts
+const COLOR: Record<EnemyType, string> = {
+  normal: "blue",
+  silver: "silver",
+  gold: "gold",
+};
+```
+
+Edit `src/App.tsx` — pass `type` from each grid cell and pass it to `<Enemy>`:
 
 ```tsx
 const bricks = useMemo(
@@ -347,24 +307,13 @@ const bricks = useMemo(
           : [],
       ),
     ),
+  [],
+);
 ```
-
-```tsx
-// later:
-{
-  bricks.map((b) => <Enemy key={b.id} type={b.type} position={b.position} />);
-}
-```
-
-✅ Blue bricks. Open `level-01.json`, change one cell from `"normal"` to `"silver"` — that brick turns grey. Another to `"gold"` — yellow. _"This is what types add. Instant variation from a JSON edit."_
 
 ### 9c (12:00–14:00) — Destroy on hit
 
-We need state — a brick that's been hit must vanish. `enemiesAtom` is a dictionary of bricks; `destroyEnemyAtom` removes one by id. The level-expansion logic moves out of App.tsx and lives next to the state it produces.
-
-Open the empty `src/lib/game-store.ts`, paste:
-
-````ts
+```ts
 import { atom } from "jotai";
 import { CELL_HEIGHT, CELL_WIDTH, START_X, START_Y } from "./consts";
 import { levels } from "#/levels";
@@ -400,26 +349,20 @@ export const destroyEnemyAtom = atom(null, (_get, set, id: string) => {
     return next;
   });
 });
-Notice we pass `buildEnemies()` as the **initial value** of the atom — bricks exist before App ever renders, so no `useEffect` to bootstrap them.
-
-Edit `src/App.tsx` — drop the local `bricks` useMemo, read the atom, render from it:
+```
 
 ```tsx
-// new imports
-import { useAtomValue } from "jotai";
-import { enemiesAtom } from "#/lib/game-store";
 
 // inside the component (replace the bricks useMemo):
 const enemies = useAtomValue(enemiesAtom);
 
 const enemyElements = useMemo(
   () =>
-    Object.entries(enemies).map(([id, e]) => (
-      <Enemy key={id} id={id} type={e.type} position={e.position} />
+    Object.entries(enemies).map(([id, enemy]) => (
+      <Enemy key={id} id={id} type={enemy.type} position={enemy.position} />
     )),
-You can also drop the now-unused imports from beat 9a/b: `levels`, `START_X`, `START_Y`, `CELL_WIDTH`, `CELL_HEIGHT` — they all moved into `game-store.ts`.
 
-Edit `src/components/enemy.tsx` — add `id` prop and a collision handler:
+```
 
 ```tsx
 import { RigidBody } from "@react-three/rapier";
@@ -458,23 +401,19 @@ export function Enemy({
     </RigidBody>
   );
 }
-````
-
-✅ Bricks disappear on first hit. (In `talk-demo`, silver takes 2 hits and gold takes 3 — same lookup table in `consts.ts`. Mention this, point at the finished version, move on.)
-
-**Talking point**: Jotai earns its keep here — the atom is shared between App (reads, renders) and Enemy (writes). No prop-drilling, no event bus.
+```
 
 ## Beat 10 (14:00–16:00) — State machine wiring
 
-The ball can hit bricks but it can't lose. This beat adds the lose condition: the ball dies when it falls past the paddle, lives decrement, and the game enters a terminal state. No UI yet — that's beat 11.
-
-We extend `game-store.ts` with the state machine, give `useBall` knowledge of `gameStateAtom` (so it spawns above the paddle when READY and triggers GAME_OVER on floor), and give `usePaddle` a `paddlePositionRef` to publish.
-
-**Replace `src/lib/game-store.ts`** — extend with the state machine, lives, and a `WON` check. No score, no timer, no effect-toggle state — just what `useBall` and the HUD need:
-
-````ts
+```ts
 import { atom } from "jotai";
-import { CELL_HEIGHT, CELL_WIDTH, START_X, START_Y } from "./consts";
+import {
+  CELL_HEIGHT,
+  CELL_WIDTH,
+  START_X,
+  START_Y,
+  INITIAL_LIVES,
+} from "./consts";
 import { levels } from "#/levels";
 import type { EnemyType } from "#/levels";
 
@@ -487,8 +426,6 @@ export enum GAME_STATE {
 }
 
 export const paddlePositionRef = { current: 0 };
-
-const INITIAL_LIVES = 3;
 
 const buildEnemies = () => {
   const next: Record<
@@ -532,6 +469,8 @@ export const resetGameAtom = atom(null, (_get, set) => {
   set(gameStateAtom, GAME_STATE.READY);
   set(enemiesAtom, buildEnemies());
 });
+```
+
 `buildEnemies` is unchanged from beat 9c — we just made the file grow around it with the state machine, lives, and `WON` detection. `destroyEnemyAtom` keeps its `(id: string)` signature, so no Enemy change needed.
 
 `resetGameAtom` calls `buildEnemies()` again on "play again" — that's why the helper had to be a function and not just inlined into the atom initializer.
@@ -555,7 +494,7 @@ useFrame((_, delta) => {
     z: 0,
   });
 });
-````
+```
 
 **Paste → `src/lib/hooks/useBall.ts`** (first time this hook exists):
 
@@ -581,14 +520,15 @@ export const useBall = () => {
   const ref = useRef<RapierRigidBody | null>(null);
   const [lives, setLives] = useAtom(livesAtom);
   const livesRef = useRef(lives);
-  useEffect(() => {
-    livesRef.current = lives;
-  }, [lives]);
   const gameState = useAtomValue(gameStateAtom);
   const setGameState = useSetAtom(gameStateAtom);
   const bounds = useGameBounds();
   const paddleY = bounds.bottom + PADDLE_BOTTOM_OFFSET;
-  // While READY, glue the ball above the paddle and freeze it.
+
+  useEffect(() => {
+    livesRef.current = lives;
+  }, [lives]);
+
   useFrame(() => {
     if (gameState !== GAME_STATE.READY) return;
     const body = ref.current;
@@ -652,15 +592,7 @@ onCollisionEnter={onFloorCollision}
 
 ```
 
-✅ Ball respawns at the paddle when state is READY. Falls past the paddle → lives go down (silently, no UI yet) → eventually GAME_OVER and the ball freezes. Clearing all bricks → WON state, ball freezes. **The game is mechanically complete; it just looks dead.**
-
 ## Beat 11 (16:00–18:00) — HUD + overlays
-
-Now we give the state machine a face: lives at the top, a "Press SPACE to start" overlay, "GAME OVER" + "Play again", "YOU WIN!" + "Play again".
-
-`src/components/overlay.tsx` is **pre-staged** — it's just a `title + subtitle + button` Tailwind component, no insight value to paste live. Skim it (or skip it) and go straight to the App.tsx wiring below.
-
-**Replace `src/App.tsx`** — full wiring with HUD, space-to-start, all overlays:
 
 ```tsx
 import { Canvas } from "@react-three/fiber";
@@ -751,13 +683,9 @@ export function App() {
 }
 ```
 
-✅ Press SPACE to launch. Die → GAME OVER → Play again. Clear all bricks → YOU WIN.
-
 ## Beat 12 (18:00–21:00) — Polish (four pastes, four "oohs")
 
 ### 12a. HDRI lighting
-
-**Edit `src/App.tsx`** — add `Environment` import + element at top of `<Canvas>`:
 
 ```tsx
 // add to imports
@@ -767,17 +695,15 @@ import { Environment } from "@react-three/drei";
 <Environment files={["/venice_sunset_2k.exr"]} />;
 ```
 
-✅ Everything reflects sunset. Bricks suddenly look real.
+### 12b. Postprocessing
 
-`src/components/Effects.tsx` is **pre-staged** — Bloom + ToneMapping + Vignette + ChromaticAberration + Scanline wrapped in one `<EffectComposer>`. Just wire it into `App.tsx`:
-
-````tsx
+```tsx
 // add to imports
 import { Effects } from "#/components/Effects";
 
 // inside <Canvas>, before <Physics>
 <Effects />;
-✅ Bloom + chromatic aberration + scanlines kick in. Everything pops.
+```
 
 ### 12c. Background
 
@@ -788,11 +714,9 @@ import { Background } from "#/components/Background";
 
 // inside <Canvas>, as first child
 <Background />;
-````
+```
 
-✅ Green-on-dark-teal grid behind the scene.
-
-`src/models/paddle.tsx` is **pre-staged** — `PaddleModel` loads `/paddle.glb` and returns a `<group>` with the three sub-meshes (GLTF type boilerplate, no insight). Two-line edit to `src/components/paddle.tsx`:
+### 12d. Swap the paddle box for the GLB
 
 ```tsx
 // add to imports
@@ -801,32 +725,3 @@ import { PaddleModel } from "#/models/paddle";
 // replace the inline <mesh>...</mesh> block with:
 <PaddleModel />;
 ```
-
-✅ Paddle goes from a red box to a proper 3D model. Talk is visually complete.
-
-## Beat 13 (21:00–23:30) — "And here's where it goes"
-
-Switch to `talk-demo` branch in another terminal tab. Show:
-
-```bash
-git checkout talk-demo
-ls src/components/  # Background, ball, Effects, enemy, overlay, paddle, walls (same)
-ls src/levels/      # also same: schema, level-01, index
-```
-
-Then `git checkout main` and show:
-
-- `src/scores/` — server function + Drizzle SQLite for leaderboard
-- `src/routes/editor.tsx` + `src/dev/editor.tsx` — visual level editor
-- 8 levels instead of 1
-- Homepage with 3D text and "Start game" link
-
-**Closing line**: _"All of that — the leaderboard, the editor, the levels — sits on top of what we just built. That's R3F. Thanks."_
-
----
-
-## Cut-down order if behind
-
-1. Skip 12d (GLB paddle swap) — paddle stays as red box, no harm done
-2. Skip 12c (Background) — least visual impact
-3. Skip 12b (Effects) — sad but the HDRI alone still gives the wow
